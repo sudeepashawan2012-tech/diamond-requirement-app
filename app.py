@@ -11,8 +11,6 @@ LOG_SHEET_NAME = "SHORTAGE_LOG"
 
 PRIMARY_SIEVE_COUNT = 18  # Rows 4..21 => 6 (0) through 6.5
 
-# Exact column indices (1-based) in FINAL REQUIREMENT (A4:AN33)
-# Order: M1 -> M2 -> H1 -> M3; inside each block: Sieve, Req, Bagging, Assort, Final Req, Urgency
 QUALITY_BLOCKS = [
     {
         "code": "M1",
@@ -24,7 +22,7 @@ QUALITY_BLOCKS = [
         "assort_col": 4,    # D
         "final_col": 5,     # E
         "urgency_col": 6,   # F
-        "buying_col": 32,   # AF (FOR BUYING M1)
+        "buying_col": 32,   # AF
     },
     {
         "code": "M2",
@@ -36,7 +34,7 @@ QUALITY_BLOCKS = [
         "assort_col": 11,   # K
         "final_col": 12,    # L
         "urgency_col": 13,  # M
-        "buying_col": 33,   # AG (FOR BUYING M2)
+        "buying_col": 33,   # AG
     },
     {
         "code": "H1",
@@ -48,7 +46,7 @@ QUALITY_BLOCKS = [
         "assort_col": 18,   # R
         "final_col": 19,    # S
         "urgency_col": 20,  # T
-        "buying_col": 34,   # AH (FOR BUYING H1)
+        "buying_col": 34,   # AH
     },
     {
         "code": "M3",
@@ -60,7 +58,7 @@ QUALITY_BLOCKS = [
         "assort_col": 25,   # Y
         "final_col": 26,    # Z
         "urgency_col": 27,  # AA
-        "buying_col": 35,   # AI (FOR BUYING M3)
+        "buying_col": 35,   # AI
     },
 ]
 
@@ -142,227 +140,231 @@ def fmt_num(val, show_zero=True):
 def inject_css(theme_name: str):
     t = THEMES[theme_name]
     st.markdown(
-        f"""
-        <style>
-            [data-testid="stSidebar"] {{ display: none !important; }}
-            [data-testid="collapsedControl"] {{ display: none !important; }}
+        f"""<style>
+[data-testid="stSidebar"] {{ display: none !important; }}
+[data-testid="collapsedControl"] {{ display: none !important; }}
+header[data-testid="stHeader"] {{ background: transparent !important; height: 2.2rem !important; }}
+[data-testid="stToolbar"] {{ right: 0.5rem !important; }}
 
-            .stApp {{
-                background-color: {t["bg_app"]};
-                color: {t["text"]};
-            }}
-            .block-container {{
-                padding-top: 0.65rem !important;
-                padding-bottom: 1.5rem !important;
-                padding-left: 0.65rem !important;
-                padding-right: 0.65rem !important;
-                max-width: 100% !important;
-            }}
-            div[data-testid="stVerticalBlock"] {{
-                gap: 0.35rem !important;
-            }}
+.stApp {{
+    background-color: {t["bg_app"]};
+    color: {t["text"]};
+}}
+.block-container {{
+    padding-top: 2.6rem !important;
+    padding-bottom: 1.2rem !important;
+    padding-left: 0.6rem !important;
+    padding-right: 0.6rem !important;
+    max-width: 100% !important;
+}}
+div[data-testid="stVerticalBlock"] {{
+    gap: 0.3rem !important;
+}}
+div[data-testid="stMarkdownContainer"] p {{
+    margin-bottom: 0 !important;
+}}
 
-            .portal-banner {{
-                background: {t["card_bg"]};
-                border: 1.5px solid {t["border"]};
-                border-radius: 8px;
-                padding: 6px 10px;
-                margin-bottom: 6px;
-                display: flex;
-                flex-wrap: wrap;
-                align-items: center;
-                justify-content: space-between;
-                gap: 8px;
-            }}
-            .portal-title {{
-                font-size: 16px;
-                font-weight: 900;
-                letter-spacing: 0.2px;
-            }}
-            .role-pill {{
-                font-size: 12px;
-                font-weight: 800;
-                padding: 2px 8px;
-                border-radius: 999px;
-                background: {t["sub_bg"]};
-                border: 1px solid {t["border"]};
-            }}
+.portal-banner {{
+    background: {t["card_bg"]};
+    border: 1.5px solid {t["border"]};
+    border-radius: 7px;
+    padding: 5px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}}
+.portal-title {{
+    font-size: 15px;
+    font-weight: 900;
+}}
+.role-pill {{
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: {t["sub_bg"]};
+    border: 1px solid {t["border"]};
+}}
 
-            /* 4-block side-by-side grid */
-            .four-block-grid {{
-                display: grid;
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-                gap: 6px;
-                width: 100%;
-            }}
-            @media (max-width: 1100px) {{
-                .four-block-grid {{
-                    grid-template-columns: repeat(2, minmax(0, 1fr));
-                }}
-            }}
-            @media (max-width: 640px) {{
-                .four-block-grid {{
-                    grid-template-columns: 1fr;
-                }}
-            }}
+.four-block-grid {{
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+    align-items: start;
+}}
+@media (max-width: 1100px) {{
+    .four-block-grid {{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }}
+}}
+@media (max-width: 640px) {{
+    .four-block-grid {{
+        grid-template-columns: 1fr;
+    }}
+}}
 
-            .q-card {{
-                background: {t["card_bg"]};
-                border: 1.5px solid {t["border"]};
-                border-radius: 7px;
-                overflow: hidden;
-            }}
-            .q-card-hdr {{
-                background: {t["hdr_bg"]};
-                color: {t["hdr_fg"]};
-                padding: 5px 7px;
-                font-size: 13px;
-                font-weight: 900;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }}
-            .q-card-sub {{
-                font-size: 11px;
-                font-weight: 800;
-                padding: 3px 7px;
-                background: {t["sub_bg"]};
-                border-bottom: 1px solid {t["border"]};
-                display: flex;
-                justify-content: space-between;
-            }}
+.q-card {{
+    background: {t["card_bg"]};
+    border: 1.5px solid {t["border"]};
+    border-radius: 7px;
+    overflow: hidden;
+}}
+.q-card-hdr {{
+    background: {t["hdr_bg"]};
+    color: {t["hdr_fg"]};
+    padding: 4px 7px;
+    font-size: 12px;
+    font-weight: 900;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}}
+.q-card-sub {{
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 7px;
+    background: {t["sub_bg"]};
+    color: {t["text"]};
+    border-bottom: 1px solid {t["border"]};
+    display: flex;
+    justify-content: space-between;
+}}
 
-            table.compact-tbl {{
-                width: 100%;
-                border-collapse: collapse;
-                font-variant-numeric: tabular-nums;
-            }}
-            table.compact-tbl th {{
-                background: {t["sub_bg"]};
-                color: {t["text"]};
-                font-size: 11px;
-                font-weight: 900;
-                padding: 3px 4px;
-                text-align: right;
-                border-bottom: 1.5px solid {t["border"]};
-                border-right: 1px solid {t["border"]};
-            }}
-            table.compact-tbl th:first-child {{
-                text-align: left;
-                padding-left: 5px;
-            }}
-            table.compact-tbl th:last-child {{
-                border-right: none;
-            }}
-            table.compact-tbl td {{
-                font-size: 13px;
-                font-weight: 800;
-                padding: 2px 4px;
-                line-height: 1.25;
-                text-align: right;
-                border-bottom: 1px solid {t["border"]};
-                border-right: 1px solid {t["border"]};
-                white-space: nowrap;
-            }}
-            table.compact-tbl td:first-child {{
-                text-align: left;
-                padding-left: 5px;
-                font-weight: 900;
-            }}
-            table.compact-tbl td:last-child {{
-                border-right: none;
-            }}
-            table.compact-tbl td.cell-bag {{
-                background: {t["bag_bg"]};
-            }}
-            table.compact-tbl td.cell-ass {{
-                background: {t["ass_bg"]};
-            }}
-            table.compact-tbl tr.row-urgent td {{
-                background: {t["urg_bg"]};
-            }}
-            table.compact-tbl tr.row-subtotal td {{
-                background: {t["sub_bg"]};
-                font-weight: 900;
-                border-top: 1.5px solid {t["hdr_bg"]};
-                border-bottom: 1.5px solid {t["hdr_bg"]};
-            }}
-            table.compact-tbl tfoot td {{
-                background: {t["hdr_bg"]};
-                color: {t["hdr_fg"]};
-                font-weight: 900;
-                padding: 4px 5px;
-            }}
-            .val-short {{
-                color: #dc2626 !important;
-                font-weight: 900 !important;
-            }}
-            .val-surplus {{
-                color: #16a34a !important;
-                font-weight: 900 !important;
-            }}
-            .urg-tag {{
-                display: inline-block;
-                background: #dc2626;
-                color: #ffffff;
-                font-size: 9px;
-                font-weight: 900;
-                padding: 0px 4px;
-                border-radius: 3px;
-                margin-left: 3px;
-                vertical-align: middle;
-            }}
+table.compact-tbl {{
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+}}
+table.compact-tbl th {{
+    background: {t["sub_bg"]};
+    color: {t["text"]};
+    font-size: 11px;
+    font-weight: 900;
+    padding: 2px 4px;
+    text-align: right;
+    border-bottom: 1.5px solid {t["border"]};
+    border-right: 1px solid {t["border"]};
+}}
+table.compact-tbl th:first-child {{
+    text-align: left;
+    padding-left: 5px;
+}}
+table.compact-tbl th:last-child {{
+    border-right: none;
+}}
+table.compact-tbl td {{
+    font-size: 13px;
+    font-weight: 800;
+    padding: 2px 4px;
+    line-height: 1.2;
+    text-align: right;
+    border-bottom: 1px solid {t["border"]};
+    border-right: 1px solid {t["border"]};
+    white-space: nowrap;
+}}
+table.compact-tbl td:first-child {{
+    text-align: left;
+    padding-left: 5px;
+    font-weight: 900;
+}}
+table.compact-tbl td:last-child {{
+    border-right: none;
+}}
+table.compact-tbl td.cell-bag {{
+    background: {t["bag_bg"]};
+}}
+table.compact-tbl td.cell-ass {{
+    background: {t["ass_bg"]};
+}}
+table.compact-tbl tr.row-urgent td {{
+    background: {t["urg_bg"]};
+}}
+table.compact-tbl tr.row-subtotal td {{
+    background: {t["sub_bg"]};
+    font-weight: 900;
+    border-top: 1.5px solid {t["hdr_bg"]};
+    border-bottom: 1.5px solid {t["hdr_bg"]};
+}}
+table.compact-tbl tfoot td {{
+    background: {t["hdr_bg"]};
+    color: {t["hdr_fg"]};
+    font-size: 11px;
+    font-weight: 900;
+    text-align: left;
+    padding: 3px 6px;
+}}
+.val-short {{
+    color: #dc2626 !important;
+    font-weight: 900 !important;
+}}
+.val-surplus {{
+    color: #16a34a !important;
+    font-weight: 900 !important;
+}}
+.urg-tag {{
+    display: inline-block;
+    background: #dc2626;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 900;
+    padding: 0px 3px;
+    border-radius: 3px;
+    margin-left: 3px;
+    vertical-align: middle;
+}}
 
-            /* Buying compact table */
-            .buy-wrap {{
-                background: {t["card_bg"]};
-                border: 1.5px solid {t["border"]};
-                border-radius: 7px;
-                overflow-x: auto;
-            }}
-            table.buy-tbl {{
-                width: 100%;
-                border-collapse: collapse;
-                font-variant-numeric: tabular-nums;
-            }}
-            table.buy-tbl th {{
-                background: {t["hdr_bg"]};
-                color: {t["hdr_fg"]};
-                font-size: 12px;
-                font-weight: 900;
-                padding: 5px 8px;
-                text-align: right;
-                border-right: 1px solid rgba(255,255,255,0.2);
-            }}
-            table.buy-tbl th:first-child {{ text-align: left; }}
-            table.buy-tbl th:last-child {{ border-right: none; }}
-            table.buy-tbl td {{
-                font-size: 14px;
-                font-weight: 800;
-                padding: 3px 8px;
-                text-align: right;
-                border-bottom: 1px solid {t["border"]};
-                border-right: 1px solid {t["border"]};
-            }}
-            table.buy-tbl td:first-child {{
-                text-align: left;
-                font-weight: 900;
-            }}
-            table.buy-tbl td:last-child {{ border-right: none; }}
-            table.buy-tbl tr.row-subtotal td {{
-                background: {t["sub_bg"]};
-                font-weight: 900;
-                border-top: 1.5px solid {t["hdr_bg"]};
-                border-bottom: 1.5px solid {t["hdr_bg"]};
-            }}
-            table.buy-tbl tfoot td {{
-                background: {t["hdr_bg"]};
-                color: {t["hdr_fg"]};
-                font-weight: 900;
-                padding: 5px 8px;
-            }}
-        </style>
-        """,
+.buy-wrap {{
+    background: {t["card_bg"]};
+    border: 1.5px solid {t["border"]};
+    border-radius: 7px;
+    overflow-x: auto;
+}}
+table.buy-tbl {{
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+}}
+table.buy-tbl th {{
+    background: {t["hdr_bg"]};
+    color: {t["hdr_fg"]};
+    font-size: 12px;
+    font-weight: 900;
+    padding: 4px 8px;
+    text-align: right;
+    border-right: 1px solid rgba(255,255,255,0.2);
+}}
+table.buy-tbl th:first-child {{ text-align: left; }}
+table.buy-tbl th:last-child {{ border-right: none; }}
+table.buy-tbl td {{
+    font-size: 14px;
+    font-weight: 800;
+    padding: 2px 8px;
+    line-height: 1.25;
+    text-align: right;
+    border-bottom: 1px solid {t["border"]};
+    border-right: 1px solid {t["border"]};
+}}
+table.buy-tbl td:first-child {{
+    text-align: left;
+    font-weight: 900;
+}}
+table.buy-tbl td:last-child {{ border-right: none; }}
+table.buy-tbl tr.row-subtotal td {{
+    background: {t["sub_bg"]};
+    font-weight: 900;
+    border-top: 1.5px solid {t["hdr_bg"]};
+    border-bottom: 1.5px solid {t["hdr_bg"]};
+}}
+table.buy-tbl tfoot td {{
+    background: {t["hdr_bg"]};
+    color: {t["hdr_fg"]};
+    font-weight: 900;
+    padding: 4px 8px;
+}}
+</style>""",
         unsafe_allow_html=True,
     )
 
@@ -399,7 +401,11 @@ def load_requirement_sheet() -> pd.DataFrame:
             sheet_fin = parse_num(r[blk["final_col"] - 1] if len(r) >= blk["final_col"] else None)
             calc_fin = round(((bag or 0.0) + (ass or 0.0)) - req, 2)
             fin = sheet_fin if sheet_fin is not None else calc_fin
-            urg_raw = str(r[blk["urgency_col"] - 1]).strip().upper() if len(r) >= blk["urgency_col"] and r[blk["urgency_col"] - 1] else ""
+            urg_raw = (
+                str(r[blk["urgency_col"] - 1]).strip().upper()
+                if len(r) >= blk["urgency_col"] and r[blk["urgency_col"] - 1]
+                else ""
+            )
             buy_sheet = parse_num(r[blk["buying_col"] - 1] if len(r) >= blk["buying_col"] else None)
 
             rec[f"{q}_req"] = round(req, 2)
@@ -457,10 +463,23 @@ def load_shortage_log() -> pd.DataFrame:
 
 
 def append_shortage_snapshot(df_after: pd.DataFrame, trigger_label: str):
-    """Appends shortage / URGENT rows to SHORTAGE_LOG so slowdowns have a date-stamped audit trail."""
     now = datetime.now()
     snap_date = now.strftime("%Y-%m-%d")
     snap_time = now.strftime("%H:%M:%S")
+    headers = [
+        "Snapshot_Date",
+        "Snapshot_Time",
+        "Quality",
+        "Grade",
+        "Sieve_Size",
+        "Required",
+        "Bagging",
+        "Assort",
+        "Final_Req",
+        "Shortage_Carats",
+        "Status_Flag",
+        "Trigger",
+    ]
 
     log_rows = []
     for _, row in df_after.iterrows():
@@ -498,44 +517,11 @@ def append_shortage_snapshot(df_after: pd.DataFrame, trigger_label: str):
     sh = get_gsheet_client().open_by_key(SPREADSHEET_ID)
     try:
         ws_log = sh.worksheet(LOG_SHEET_NAME)
-        existing = ws_log.get("A1:L1")
-        if not existing:
-            ws_log.append_row(
-                [
-                    "Snapshot_Date",
-                    "Snapshot_Time",
-                    "Quality",
-                    "Grade",
-                    "Sieve_Size",
-                    "Required",
-                    "Bagging",
-                    "Assort",
-                    "Final_Req",
-                    "Shortage_Carats",
-                    "Status_Flag",
-                    "Trigger",
-                ],
-                value_input_option="USER_ENTERED",
-            )
+        if not ws_log.get("A1:L1"):
+            ws_log.append_row(headers, value_input_option="USER_ENTERED")
     except gspread.WorksheetNotFound:
         ws_log = sh.add_worksheet(title=LOG_SHEET_NAME, rows=2000, cols=12)
-        ws_log.append_row(
-            [
-                "Snapshot_Date",
-                "Snapshot_Time",
-                "Quality",
-                "Grade",
-                "Sieve_Size",
-                "Required",
-                "Bagging",
-                "Assort",
-                "Final_Req",
-                "Shortage_Carats",
-                "Status_Flag",
-                "Trigger",
-            ],
-            value_input_option="USER_ENTERED",
-        )
+        ws_log.append_row(headers, value_input_option="USER_ENTERED")
 
     ws_log.append_rows(log_rows, value_input_option="USER_ENTERED")
     return len(log_rows)
@@ -591,7 +577,6 @@ def save_edits_to_sheet(
     return 0, 0
 
 
-# Session state initialization
 if "role" not in st.session_state:
     st.session_state.role = "Guest"
 if "theme" not in st.session_state:
@@ -599,39 +584,42 @@ if "theme" not in st.session_state:
 if "view" not in st.session_state:
     st.session_state.view = "4-Block View"
 for _blk in QUALITY_BLOCKS:
-    key_exp = f"exp_{_blk['code']}"
-    if key_exp not in st.session_state:
-        st.session_state[key_exp] = False
+    k = f"exp_{_blk['code']}"
+    if k not in st.session_state:
+        st.session_state[k] = False
 
 inject_css(st.session_state.theme)
 
-# --- TOP CONTROL BAR (NO SIDEBAR) ---
 st.markdown(
-    f"""
-    <div class="portal-banner">
-        <div>
-            <span class="portal-title">💎 DIAMOND PORTAL</span>
-            &nbsp;<span class="role-pill">Role: {st.session_state.role}</span>
-        </div>
-        <div style="font-size:12px; font-weight:700; opacity:0.8;">
-            Option B · 4-Block Side-by-Side · Sieves 6(0)–6.5 Primary
-        </div>
-    </div>
-    """,
+    f'<div class="portal-banner"><div><span class="portal-title">💎 DIAMOND PORTAL</span>'
+    f'&nbsp;<span class="role-pill">Role: {st.session_state.role}</span></div>'
+    f'<div style="font-size:11px;font-weight:700;opacity:0.8;">4-Block View · Primary Sieves 6(0)–6.5</div></div>',
     unsafe_allow_html=True,
 )
 
-nav_c1, nav_c2, nav_c3, nav_c4, nav_c5, nav_c6 = st.columns([1.4, 1.3, 1.4, 1.6, 1.3, 0.9])
+nav_c1, nav_c2, nav_c3, nav_c4, nav_c5, nav_c6 = st.columns([1.4, 1.3, 1.4, 1.6, 1.3, 0.8])
 with nav_c1:
-    if st.button("📊 4-Block View", use_container_width=True, type="primary" if st.session_state.view == "4-Block View" else "secondary"):
+    if st.button(
+        "📊 4-Block View",
+        use_container_width=True,
+        type="primary" if st.session_state.view == "4-Block View" else "secondary",
+    ):
         st.session_state.view = "4-Block View"
         st.rerun()
 with nav_c2:
-    if st.button("🛒 Final Buying", use_container_width=True, type="primary" if st.session_state.view == "Final Buying" else "secondary"):
+    if st.button(
+        "🛒 Final Buying",
+        use_container_width=True,
+        type="primary" if st.session_state.view == "Final Buying" else "secondary",
+    ):
         st.session_state.view = "Final Buying"
         st.rerun()
 with nav_c3:
-    if st.button("📋 Shortage Log", use_container_width=True, type="primary" if st.session_state.view == "Shortage Log" else "secondary"):
+    if st.button(
+        "📋 Shortage Log",
+        use_container_width=True,
+        type="primary" if st.session_state.view == "Shortage Log" else "secondary",
+    ):
         st.session_state.view = "Shortage Log"
         st.rerun()
 with nav_c4:
@@ -670,7 +658,6 @@ with nav_c6:
 role = st.session_state.role
 perms = ROLE_PERMISSIONS[role]
 
-# Load primary requirement data
 try:
     df = load_requirement_sheet()
 except Exception as e:
@@ -678,42 +665,8 @@ except Exception as e:
     st.stop()
 
 
-def render_quality_rows(sub_df: pd.DataFrame, q: str, expanded: bool) -> str:
-    html_parts = []
-    for _, r in sub_df.iterrows():
-        sieve = r["Sieve"]
-        req = float(r[f"{q}_req"] or 0.0)
-        bag_raw = r[f"{q}_bag"]
-        ass_raw = r[f"{q}_ass"]
-        fin = float(r[f"{q}_fin"] or 0.0)
-        urg = str(r[f"{q}_urg"] or "").strip()
-
-        fin_cls = "val-short" if fin < -0.001 else ("val-surplus" if fin > 0.001 else "")
-        tr_cls = " class='row-urgent'" if urg else ""
-        urg_badge = f"<span class='urg-tag'>{urg}</span>" if urg else ""
-
-        if expanded:
-            html_parts.append(
-                f"<tr{tr_cls}>"
-                f"<td>{sieve}{urg_badge}</td>"
-                f"<td>{fmt_num(req)}</td>"
-                f"<td class='cell-bag'>{fmt_num(bag_raw, show_zero=False)}</td>"
-                f"<td class='cell-ass'>{fmt_num(ass_raw, show_zero=False)}</td>"
-                f"<td class='{fin_cls}'>{fmt_num(fin)}</td>"
-                f"</tr>"
-            )
-        else:
-            html_parts.append(
-                f"<tr{tr_cls}>"
-                f"<td>{sieve}{urg_badge}</td>"
-                f"<td class='{fin_cls}'>{fmt_num(fin)}</td>"
-                f"</tr>"
-            )
-    return "".join(html_parts)
-
-
-def render_four_cards(sub_df: pd.DataFrame, label_prefix: str, include_footer_total: bool = False):
-    st.markdown('<div class="four-block-grid">', unsafe_allow_html=True)
+def build_four_cards_html(sub_df: pd.DataFrame, sub_label: str, show_footer: bool = False) -> str:
+    cards = []
     for blk in QUALITY_BLOCKS:
         q = blk["code"]
         exp = st.session_state[f"exp_{q}"]
@@ -723,74 +676,82 @@ def render_four_cards(sub_df: pd.DataFrame, label_prefix: str, include_footer_to
         fin_sum = float(sub_df[f"{q}_fin"].fillna(0.0).sum())
         short_sum = round(float((-sub_df[f"{q}_fin"].clip(upper=0.0)).sum()), 2)
         urg_cnt = int((sub_df[f"{q}_urg"].fillna("") != "").sum())
-
         fin_sum_cls = "val-short" if fin_sum < -0.001 else ("val-surplus" if fin_sum > 0.001 else "")
-        body_html = render_quality_rows(sub_df, q, exp)
+
+        body_rows = []
+        for _, r in sub_df.iterrows():
+            sieve = r["Sieve"]
+            req = float(r[f"{q}_req"] or 0.0)
+            bag_raw = r[f"{q}_bag"]
+            ass_raw = r[f"{q}_ass"]
+            fin = float(r[f"{q}_fin"] or 0.0)
+            urg = str(r[f"{q}_urg"] or "").strip()
+
+            fin_cls = "val-short" if fin < -0.001 else ("val-surplus" if fin > 0.001 else "")
+            tr_cls = ' class="row-urgent"' if urg else ""
+            urg_badge = f'<span class="urg-tag">{urg}</span>' if urg else ""
+
+            if exp:
+                body_rows.append(
+                    f"<tr{tr_cls}>"
+                    f"<td>{sieve}{urg_badge}</td>"
+                    f"<td>{fmt_num(req)}</td>"
+                    f'<td class="cell-bag">{fmt_num(bag_raw, show_zero=False)}</td>'
+                    f'<td class="cell-ass">{fmt_num(ass_raw, show_zero=False)}</td>'
+                    f'<td class="{fin_cls}">{fmt_num(fin)}</td>'
+                    f"</tr>"
+                )
+            else:
+                body_rows.append(
+                    f"<tr{tr_cls}>"
+                    f"<td>{sieve}{urg_badge}</td>"
+                    f'<td class="{fin_cls}">{fmt_num(fin)}</td>'
+                    f"</tr>"
+                )
 
         if exp:
-            thead = (
-                "<tr>"
-                "<th>SIEVE</th><th>REQ</th><th>BAG</th><th>ASS</th><th>FINAL</th>"
-                "</tr>"
-            )
+            thead = "<tr><th>SIEVE</th><th>REQ</th><th>BAG</th><th>ASS</th><th>FINAL</th></tr>"
             sub_row = (
-                f"<tr class='row-subtotal'>"
-                f"<td>{label_prefix}</td>"
+                f'<tr class="row-subtotal">'
+                f"<td>{sub_label}</td>"
                 f"<td>{req_sum:.2f}</td>"
-                f"<td class='cell-bag'>{bag_sum:.2f}</td>"
-                f"<td class='cell-ass'>{ass_sum:.2f}</td>"
-                f"<td class='{fin_sum_cls}'>{fin_sum:.2f}</td>"
+                f'<td class="cell-bag">{bag_sum:.2f}</td>'
+                f'<td class="cell-ass">{ass_sum:.2f}</td>'
+                f'<td class="{fin_sum_cls}">{fin_sum:.2f}</td>'
                 f"</tr>"
             )
+            colspan = 5
         else:
             thead = "<tr><th>SIEVE</th><th>FINAL REQ</th></tr>"
             sub_row = (
-                f"<tr class='row-subtotal'>"
-                f"<td>{label_prefix}</td>"
-                f"<td class='{fin_sum_cls}'>{fin_sum:.2f}</td>"
+                f'<tr class="row-subtotal">'
+                f"<td>{sub_label}</td>"
+                f'<td class="{fin_sum_cls}">{fin_sum:.2f}</td>'
                 f"</tr>"
             )
+            colspan = 2
 
         tfoot_html = ""
-        if include_footer_total:
-            colspan = 5 if exp else 2
+        if show_footer:
             tfoot_html = (
-                f"<tfoot><tr><td colspan='{colspan}'>"
+                f'<tfoot><tr><td colspan="{colspan}">'
                 f"Shortage: {short_sum:.2f} ct · Urgent: {urg_cnt}"
                 f"</td></tr></tfoot>"
             )
 
-        urg_pill = f" · <span style='color:#fca5a5;'>{urg_cnt} URG</span>" if urg_cnt > 0 else ""
-
-        st.markdown(
-            f"""
-            <div class="q-card">
-                <div class="q-card-hdr">
-                    <span>{blk["label"]}</span>
-                    <span>Short {short_sum:.1f}{urg_pill}</span>
-                </div>
-                <div class="q-card-sub">
-                    <span>Req: <b>{req_sum:.1f}</b></span>
-                    <span>Bag+Ass: <b>{(bag_sum + ass_sum):.1f}</b></span>
-                </div>
-                <table class="compact-tbl">
-                    <thead>{thead}</thead>
-                    <tbody>
-                        {body_html}
-                        {sub_row}
-                    </tbody>
-                    {tfoot_html}
-                </table>
-            </div>
-            """,
-            unsafe_allow_html=True,
+        urg_pill = f' · <span style="color:#fca5a5;">{urg_cnt} URG</span>' if urg_cnt > 0 else ""
+        card_html = (
+            f'<div class="q-card">'
+            f'<div class="q-card-hdr"><span>{blk["label"]}</span><span>Short {short_sum:.1f}{urg_pill}</span></div>'
+            f'<div class="q-card-sub"><span>Req: <b>{req_sum:.1f}</b></span><span>Bag+Ass: <b>{(bag_sum + ass_sum):.1f}</b></span></div>'
+            f'<table class="compact-tbl"><thead>{thead}</thead><tbody>{"".join(body_rows)}{sub_row}</tbody>{tfoot_html}</table>'
+            f"</div>"
         )
-    st.markdown("</div>", unsafe_allow_html=True)
+        cards.append(card_html)
+
+    return f'<div class="four-block-grid">{"".join(cards)}</div>'
 
 
-# ==============================================================================
-# VIEW 1: 4-BLOCK VIEW (ALL 4 QUALITIES SIDE-BY-SIDE + EXPAND/COLLAPSE + SIEVE 7-12.5 PANE)
-# ==============================================================================
 if st.session_state.view == "4-Block View":
     t_c1, t_c2, t_c3, t_c4, t_c5 = st.columns([1, 1, 1, 1, 1.3])
     for col_box, blk in zip([t_c1, t_c2, t_c3, t_c4], QUALITY_BLOCKS):
@@ -812,13 +773,20 @@ if st.session_state.view == "4-Block View":
         mask = pd.Series(False, index=work_df.index)
         for blk in QUALITY_BLOCKS:
             q = blk["code"]
-            mask = mask | (work_df[f"{q}_fin"].fillna(0.0) < -0.001) | (work_df[f"{q}_urg"].fillna("") != "")
+            mask = (
+                mask
+                | (work_df[f"{q}_fin"].fillna(0.0) < -0.001)
+                | (work_df[f"{q}_urg"].fillna("") != "")
+            )
         work_df = work_df[mask].reset_index(drop=True)
 
     primary_df = work_df[work_df["Tier"] == "Primary"]
     large_df = work_df[work_df["Tier"] == "Large"]
 
-    render_four_cards(primary_df, "SUB (6–6.5)", include_footer_total=large_df.empty)
+    st.markdown(
+        build_four_cards_html(primary_df, "SUB (6–6.5)", show_footer=large_df.empty),
+        unsafe_allow_html=True,
+    )
 
     if not large_df.empty:
         large_short_total = sum(
@@ -828,9 +796,11 @@ if st.session_state.view == "4-Block View":
             f"▶ Sieves Below 6.5 (7 to 12.5) · {len(large_df)} sizes · Shortage: {large_short_total:.2f} ct",
             expanded=False,
         ):
-            render_four_cards(large_df, "SUB (7–12.5)", include_footer_total=False)
+            st.markdown(
+                build_four_cards_html(large_df, "SUB (7–12.5)", show_footer=False),
+                unsafe_allow_html=True,
+            )
 
-        # Grand total across all visible rows
         gt_parts = []
         for blk in QUALITY_BLOCKS:
             q = blk["code"]
@@ -838,13 +808,11 @@ if st.session_state.view == "4-Block View":
             g_short = round(float((-work_df[f"{q}_fin"].clip(upper=0.0)).sum()), 2)
             gt_parts.append(f"<b>{q}</b>: Final {g_fin:+.2f} (Buy {g_short:.2f})")
         st.markdown(
-            f"<div class='q-card-sub' style='border:1.5px solid; border-radius:6px; margin-top:4px; padding:6px 8px;'>"
-            f"<span><b>GRAND TOTAL</b></span><span>{' &nbsp;|&nbsp; '.join(gt_parts)}</span>"
-            f"</div>",
+            f'<div class="q-card-sub" style="border:1.5px solid;border-radius:6px;margin-top:4px;padding:5px 8px;">'
+            f'<span><b>GRAND TOTAL</b></span><span>{" &nbsp;|&nbsp; ".join(gt_parts)}</span></div>',
             unsafe_allow_html=True,
         )
 
-    # Role-based quick editor (only shown when unlocked via PIN)
     if perms["can_bagging"] or perms["can_assort"]:
         st.markdown("---")
         st.markdown(f"**Quick Entry ({role})** — edit allowed columns below and click **Save & Log Shortage Snapshot**:")
@@ -877,9 +845,6 @@ if st.session_state.view == "4-Block View":
             st.rerun()
 
 
-# ==============================================================================
-# VIEW 2: FINAL BUYING (FOR BUYING + COLLAPSIBLE SIEVES 7 TO 12.5)
-# ==============================================================================
 elif st.session_state.view == "Final Buying":
     try:
         df_buy = load_buying_sheet()
@@ -887,10 +852,8 @@ elif st.session_state.view == "Final Buying":
         df_buy = pd.DataFrame()
 
     if df_buy.empty:
-        # Fallback directly from FINAL REQUIREMENT buying columns if FINAL BUYING tab is empty/missing
-        buy_rows = []
-        for _, r in df.iterrows():
-            buy_rows.append(
+        df_buy = pd.DataFrame(
+            [
                 {
                     "Sieve": r["Sieve"],
                     "Tier": r["Tier"],
@@ -899,10 +862,11 @@ elif st.session_state.view == "Final Buying":
                     "H1": r["H1_buy"],
                     "M3": r["M3_buy"],
                 }
-            )
-        df_buy = pd.DataFrame(buy_rows)
+                for _, r in df.iterrows()
+            ]
+        )
 
-    def render_buying_table(sub_b: pd.DataFrame, sub_label: str, show_grand_total: bool = False):
+    def build_buying_html(sub_b: pd.DataFrame, sub_label: str, show_grand_total: bool = False) -> str:
         q_cols = ["M1", "M2", "H1", "M3"]
         body_trs = []
         for _, r in sub_b.iterrows():
@@ -910,66 +874,47 @@ elif st.session_state.view == "Final Buying":
             for qc in q_cols:
                 val = r[qc]
                 fval = float(val) if val is not None and not pd.isna(val) else 0.0
-                cls = " class='val-short'" if fval > 0.001 else ""
+                cls = ' class="val-short"' if fval > 0.001 else ""
                 cells.append(f"<td{cls}>{fmt_num(val, show_zero=False)}</td>")
             body_trs.append(f"<tr>{''.join(cells)}</tr>")
 
         sub_cells = [f"<td>{sub_label}</td>"]
         for qc in q_cols:
             s_val = float(sub_b[qc].fillna(0.0).sum())
-            sub_cells.append(f"<td class='val-short'>{s_val:.2f}</td>")
-        body_trs.append(f"<tr class='row-subtotal'>{''.join(sub_cells)}</tr>")
+            sub_cells.append(f'<td class="val-short">{s_val:.2f}</td>')
+        body_trs.append(f'<tr class="row-subtotal">{"".join(sub_cells)}</tr>')
 
         foot_html = ""
         if show_grand_total:
             gt_cells = ["<td>GRAND TOTAL</td>"]
             for qc in q_cols:
-                g_val = float(df_buy[qc].fillna(0.0).sum())
-                gt_cells.append(f"<td>{g_val:.2f}</td>")
+                gt_cells.append(f"<td>{float(df_buy[qc].fillna(0.0).sum()):.2f}</td>")
             foot_html = f"<tfoot><tr>{''.join(gt_cells)}</tr></tfoot>"
 
-        st.markdown(
-            f"""
-            <div class="buy-wrap">
-                <table class="buy-tbl">
-                    <thead>
-                        <tr>
-                            <th>SEIVE SIZE</th>
-                            <th>M1 (VVS/DEF)</th>
-                            <th>M2 (VVS-VS/GH)</th>
-                            <th>H1 (VVS-EF)</th>
-                            <th>M3 (SI/GH)</th>
-                        </tr>
-                    </thead>
-                    <tbody>{''.join(body_trs)}</tbody>
-                    {foot_html}
-                </table>
-            </div>
-            """,
-            unsafe_allow_html=True,
+        return (
+            f'<div class="buy-wrap"><table class="buy-tbl">'
+            f"<thead><tr><th>SEIVE SIZE</th><th>M1 (VVS/DEF)</th><th>M2 (VVS-VS/GH)</th><th>H1 (VVS-EF)</th><th>M3 (SI/GH)</th></tr></thead>"
+            f"<tbody>{''.join(body_trs)}</tbody>{foot_html}</table></div>"
         )
 
     b_prim = df_buy[df_buy["Tier"] == "Primary"]
     b_large = df_buy[df_buy["Tier"] == "Large"]
 
-    render_buying_table(b_prim, "SUBTOTAL (6–6.5)", show_grand_total=b_large.empty)
+    st.markdown(build_buying_html(b_prim, "SUBTOTAL (6–6.5)", show_grand_total=b_large.empty), unsafe_allow_html=True)
 
     if not b_large.empty:
         with st.expander(f"▶ Sieves Below 6.5 (7 to 12.5) · {len(b_large)} sizes", expanded=False):
-            render_buying_table(b_large, "SUBTOTAL (7–12.5)", show_grand_total=False)
+            st.markdown(build_buying_html(b_large, "SUBTOTAL (7–12.5)", show_grand_total=False), unsafe_allow_html=True)
 
         gt_cells = ["<td>GRAND TOTAL</td>"]
         for qc in ["M1", "M2", "H1", "M3"]:
             gt_cells.append(f"<td>{float(df_buy[qc].fillna(0.0).sum()):.2f}</td>")
         st.markdown(
-            f"<div class='buy-wrap' style='margin-top:4px;'><table class='buy-tbl'><tfoot><tr>{''.join(gt_cells)}</tr></tfoot></table></div>",
+            f'<div class="buy-wrap" style="margin-top:4px;"><table class="buy-tbl"><tfoot><tr>{"".join(gt_cells)}</tr></tfoot></table></div>',
             unsafe_allow_html=True,
         )
 
 
-# ==============================================================================
-# VIEW 3: SHORTAGE LOG (PRODUCTION SLOWDOWN TRACK RECORD)
-# ==============================================================================
 elif st.session_state.view == "Shortage Log":
     log_c1, log_c2 = st.columns([2, 1])
     with log_c1:
