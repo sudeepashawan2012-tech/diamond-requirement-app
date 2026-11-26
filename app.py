@@ -149,9 +149,24 @@ def inject_css(theme_name: str):
 header[data-testid="stHeader"] {{ background: transparent !important; height: 2.1rem !important; }}
 [data-testid="stToolbar"] {{ right: 0.5rem !important; }}
 
-.stApp {{
-    background-color: {t["bg_app"]};
-    color: {t["text"]};
+.stApp,
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"] {{
+    background-color: {t["bg_app"]} !important;
+    color: {t["text"]} !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}}
+[data-testid="stMainBlockContainer"],
+.block-container {{
+    padding-top: 2.3rem !important;
+    padding-bottom: 1.2rem !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
 }}
 [data-testid="stSidebar"] {{
     background-color: {t["card_bg"]} !important;
@@ -182,15 +197,12 @@ header[data-testid="stHeader"] {{ background: transparent !important; height: 2.
     border-color: {t["border"]} !important;
 }}
 
-.block-container {{
-    padding-top: 2.3rem !important;
-    padding-bottom: 1.2rem !important;
-    padding-left: 0.55rem !important;
-    padding-right: 0.55rem !important;
-    max-width: 100% !important;
-}}
-div[data-testid="stVerticalBlock"] {{
+.block-container div[data-testid="stVerticalBlock"] {{
     gap: 0.25rem !important;
+}}
+.block-container div[data-testid="stMarkdownContainer"] {{
+    width: 100% !important;
+    max-width: 100% !important;
 }}
 .block-container div[data-testid="stMarkdownContainer"] p {{
     margin-bottom: 0 !important;
@@ -272,6 +284,8 @@ div[data-testid="stVerticalBlock"] {{
     align-items: center;
     justify-content: space-between;
     gap: 6px;
+    width: 100%;
+    box-sizing: border-box;
 }}
 .portal-title {{
     font-size: 15px;
@@ -286,12 +300,15 @@ div[data-testid="stVerticalBlock"] {{
     border: 1px solid {t["border"]};
 }}
 
+/* Automatic layout adaptation by screen width and aspect ratio */
 .four-block-grid {{
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 5px;
     width: 100%;
+    max-width: 100%;
     align-items: start;
+    box-sizing: border-box;
 }}
 @media (max-aspect-ratio: 5/4) and (max-width: 1200px) {{
     .four-block-grid {{
@@ -300,7 +317,7 @@ div[data-testid="stVerticalBlock"] {{
 }}
 @media (max-width: 620px), (max-aspect-ratio: 3/4) {{
     .four-block-grid {{
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }}
 }}
 
@@ -308,20 +325,24 @@ div[data-testid="stVerticalBlock"] {{
     background: {t["card_bg"]};
     border: 1.5px solid {t["border"]};
     border-radius: 6px;
+    min-width: 0;
+    width: 100%;
     overflow-x: auto;
+    box-sizing: border-box;
 }}
 .q-card-hdr {{
     background: {t["hdr_bg"]};
     color: {t["hdr_fg"]};
     padding: 4px 6px;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 900;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 4px;
 }}
 .q-card-sub {{
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 800;
     padding: 2px 6px;
     background: {t["sub_bg"]};
@@ -329,6 +350,7 @@ div[data-testid="stVerticalBlock"] {{
     border-bottom: 1.5px solid {t["border"]};
     display: flex;
     justify-content: space-between;
+    gap: 4px;
 }}
 
 table.compact-tbl {{
@@ -339,25 +361,25 @@ table.compact-tbl {{
 table.compact-tbl th {{
     background: {t["sub_bg"]};
     color: {t["text"]};
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 900;
-    padding: 2px 3px;
+    padding: 2px 2.5px;
     text-align: right;
     border-bottom: 1.5px solid {t["border"]};
     border-right: 1px solid {t["border"]};
 }}
 table.compact-tbl th:first-child {{
     text-align: left;
-    padding-left: 5px;
+    padding-left: 4px;
 }}
 table.compact-tbl th:last-child {{
     border-right: none;
 }}
 table.compact-tbl td {{
-    font-size: 13px;
+    font-size: 11.5px;
     font-weight: 900;
-    padding: 2px 3px;
-    line-height: 1.18;
+    padding: 2px 2.5px;
+    line-height: 1.2;
     text-align: right;
     border-bottom: 1px solid {t["border"]};
     border-right: 1px solid {t["border"]};
@@ -365,7 +387,7 @@ table.compact-tbl td {{
 }}
 table.compact-tbl td:first-child {{
     text-align: left;
-    padding-left: 5px;
+    padding-left: 4px;
     font-weight: 900;
 }}
 table.compact-tbl td:last-child {{
@@ -398,9 +420,9 @@ table.compact-tbl tr.row-subtotal td {{
     display: inline-block;
     background: #dc2626;
     color: #ffffff;
-    font-size: 9px;
+    font-size: 8.5px;
     font-weight: 900;
-    padding: 0px 3px;
+    padding: 0px 2.5px;
     border-radius: 3px;
     margin-left: 2px;
     vertical-align: middle;
@@ -411,6 +433,8 @@ table.compact-tbl tr.row-subtotal td {{
     border: 1.5px solid {t["border"]};
     border-radius: 7px;
     overflow-x: auto;
+    width: 100%;
+    box-sizing: border-box;
 }}
 table.buy-tbl {{
     width: 100%;
@@ -429,7 +453,7 @@ table.buy-tbl th {{
 table.buy-tbl th:first-child {{ text-align: left; }}
 table.buy-tbl th:last-child {{ border-right: none; }}
 table.buy-tbl td {{
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 900;
     padding: 2px 8px;
     line-height: 1.25;
