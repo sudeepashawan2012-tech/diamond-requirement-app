@@ -1,372 +1,1015 @@
-import streamlit as st
-import pandas as pd
+from datetime import datetime
 import gspread
 from google.oauth2.service_account import Credentials
+import pandas as pd
+import streamlit as st
 
 SPREADSHEET_ID = "1_FUDeCBMXBabuZjK1gvCMJcfK1_VpKHwKwLc-m1csBc"
-SHEET_NAME = "FINAL REQUIREMENT"
+REQ_SHEET_NAME = "FINAL REQUIREMENT"
+BUYING_SHEET_NAME = "FINAL BUYING"
+LOG_SHEET_NAME = "SHORTAGE_LOG"
 
-QUALITY_CONFIG = {
-    "M1": {"label": "M1 VVS/DEF",   "req_col": 2,  "assort_col": 3,  "bagging_col": 4,  "final_col": 5},
-    "M2": {"label": "M2 VVS-VS/GH", "req_col": 6,  "assort_col": 7,  "bagging_col": 8,  "final_col": 9},
-    "M3": {"label": "M3 SI/GH",     "req_col": 10, "assort_col": 11, "bagging_col": 12, "final_col": 13},
-    "H1": {"label": "H1 VVS-EF",    "req_col": 14, "assort_col": 15, "bagging_col": 16, "final_col": 17},
-}
+PRIMARY_SIEVE_COUNT = 18  # Rows 4..21 => 6 (0) through 6.5
+
+# Exact column indices (1-based) in FINAL REQUIREMENT (A4:AN33)
+# Order: M1 -> M2 -> H1 -> M3; inside each block: Sieve, Req, Bagging, Assort, Final Req, Urgency
+QUALITY_BLOCKS = [
+    {
+        "code": "M1",
+        "grade": "VVS/DEF",
+        "label": "M1 · VVS/DEF",
+        "sieve_col": 1,     # A
+        "req_col": 2,       # B
+        "bagging_col": 3,   # C
+        "assort_col": 4,    # D
+        "final_col": 5,     # E
+        "urgency_col": 6,   # F
+        "buying_col": 32,   # AF (FOR BUYING M1)
+    },
+    {
+        "code": "M2",
+        "grade": "VVS-VS/GH",
+        "label": "M2 · VVS-VS/GH",
+        "sieve_col": 8,     # H
+        "req_col": 9,       # I
+        "bagging_col": 10,  # J
+        "assort_col": 11,   # K
+        "final_col": 12,    # L
+        "urgency_col": 13,  # M
+        "buying_col": 33,   # AG (FOR BUYING M2)
+    },
+    {
+        "code": "H1",
+        "grade": "VVS-EF",
+        "label": "H1 · VVS-EF",
+        "sieve_col": 15,    # O
+        "req_col": 16,      # P
+        "bagging_col": 17,  # Q
+        "assort_col": 18,   # R
+        "final_col": 19,    # S
+        "urgency_col": 20,  # T
+        "buying_col": 34,   # AH (FOR BUYING H1)
+    },
+    {
+        "code": "M3",
+        "grade": "SI/GH",
+        "label": "M3 · SI/GH",
+        "sieve_col": 22,    # V
+        "req_col": 23,      # W
+        "bagging_col": 24,  # X
+        "assort_col": 25,   # Y
+        "final_col": 26,    # Z
+        "urgency_col": 27,  # AA
+        "buying_col": 35,   # AI (FOR BUYING M3)
+    },
+]
 
 ROLE_PERMISSIONS = {
-    "Guest":     {"pin": "",     "can_assort": False, "can_bagging": False},
-    "Assort":    {"pin": "1111", "can_assort": True,  "can_bagging": False},
-    "Bagging":   {"pin": "2222", "can_assort": False, "can_bagging": True},
-    "Developer": {"pin": "9999", "can_assort": True,  "can_bagging": True},
+    "Guest": {"pin": "", "can_assort": False, "can_bagging": False},
+    "Assort": {"pin": "1111", "can_assort": True, "can_bagging": False},
+    "Bagging": {"pin": "2222", "can_assort": False, "can_bagging": True},
+    "Developer": {"pin": "9999", "can_assort": True, "can_bagging": True},
+}
+
+THEMES = {
+    "Crisp Daylight": {
+        "bg_app": "#eef2f6",
+        "card_bg": "#ffffff",
+        "text": "#0f172a",
+        "border": "#cbd5e1",
+        "hdr_bg": "#0f172a",
+        "hdr_fg": "#ffffff",
+        "sub_bg": "#e2e8f0",
+        "bag_bg": "#f0fdf4",
+        "ass_bg": "#eff6ff",
+        "urg_bg": "#fef2f2",
+    },
+    "Midnight Slate": {
+        "bg_app": "#0b1120",
+        "card_bg": "#111827",
+        "text": "#f8fafc",
+        "border": "#334155",
+        "hdr_bg": "#020617",
+        "hdr_fg": "#f8fafc",
+        "sub_bg": "#1e293b",
+        "bag_bg": "#052e16",
+        "ass_bg": "#172554",
+        "urg_bg": "#450a0a",
+    },
+    "Warm Ivory": {
+        "bg_app": "#f7f4ee",
+        "card_bg": "#ffffff",
+        "text": "#1c1917",
+        "border": "#d6cfc2",
+        "hdr_bg": "#1c1917",
+        "hdr_fg": "#ffffff",
+        "sub_bg": "#e7e5e4",
+        "bag_bg": "#f0fdf4",
+        "ass_bg": "#eff6ff",
+        "urg_bg": "#fef2f2",
+    },
 }
 
 st.set_page_config(
-    page_title="Diamond Requirement Portal",
+    page_title="Diamond Portal",
     page_icon="💎",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
-def inject_compact_css(theme_mode: str):
-    if theme_mode == "Midnight Slate":
-        bg_app, card_bg, text_main, border_col, hdr_bg, hdr_fg = (
-            "#0f172a", "#1e293b", "#f8fafc", "#475569", "#020617", "#f8fafc"
-        )
-        assort_bg, bagging_bg, lock_bg, total_bg = "#172554", "#052e16", "#1e293b", "#334155"
-    elif theme_mode == "Warm Ivory":
-        bg_app, card_bg, text_main, border_col, hdr_bg, hdr_fg = (
-            "#faf7f2", "#ffffff", "#1c1917", "#c7bfb3", "#1e293b", "#ffffff"
-        )
-        assort_bg, bagging_bg, lock_bg, total_bg = "#eff6ff", "#f0fdf4", "#f5f5f4", "#e7e5e4"
-    else:  # Crisp Daylight (Default)
-        bg_app, card_bg, text_main, border_col, hdr_bg, hdr_fg = (
-            "#eef2f6", "#ffffff", "#0f172a", "#cbd5e1", "#0b1a2f", "#ffffff"
-        )
-        assort_bg, bagging_bg, lock_bg, total_bg = "#eff6ff", "#f0fdf4", "#f8fafc", "#cbd5e1"
 
-    st.markdown(f"""
-    <style>
-        .stApp {{
-            background-color: {bg_app};
-            color: {text_main};
-        }}
-        .block-container {{
-            padding-top: 1.1rem !important;
-            padding-bottom: 1.2rem !important;
-            padding-left: 1.2rem !important;
-            padding-right: 1.2rem !important;
-            max-width: 1120px;
-        }}
-        /* Compact KPI strip */
-        .kpi-row {{
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin: 8px 0 12px 0;
-        }}
-        @media (max-width: 768px) {{
-            .kpi-row {{ grid-template-columns: repeat(2, 1fr); }}
-        }}
-        .kpi-box {{
-            background: {card_bg};
-            border: 1.5px solid {border_col};
-            border-radius: 8px;
-            padding: 7px 10px;
-        }}
-        .kpi-lbl {{
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            opacity: 0.75;
-        }}
-        .kpi-val {{
-            font-size: 17px;
-            font-weight: 900;
-            font-variant-numeric: tabular-nums;
-        }}
-        /* Compact HTML summary table with clear column borders */
-        .compact-table-wrap {{
-            overflow-x: auto;
-            border: 1.5px solid {hdr_bg};
-            border-radius: 8px;
-            background: {card_bg};
-            margin-bottom: 12px;
-        }}
-        table.req-grid {{
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-            font-weight: 700;
-        }}
-        table.req-grid th {{
-            background: {hdr_bg};
-            color: {hdr_fg};
-            padding: 8px 10px;
-            text-align: right;
-            font-size: 13px;
-            font-weight: 800;
-            border-right: 1px solid rgba(255,255,255,0.22);
-        }}
-        table.req-grid th:first-child {{ text-align: left; }}
-        table.req-grid th:last-child {{ border-right: none; }}
-        table.req-grid td {{
-            padding: 5px 10px;
-            text-align: right;
-            font-size: 14px;
-            font-weight: 700;
-            border-bottom: 1px solid {border_col};
-            border-right: 1px solid {border_col};
-            font-variant-numeric: tabular-nums;
-        }}
-        table.req-grid td:last-child {{ border-right: none; }}
-        table.req-grid td:first-child {{
-            text-align: left;
-            font-weight: 800;
-            background: {lock_bg};
-            white-space: nowrap;
-        }}
-        table.req-grid td.col-assort {{ background: {assort_bg}; }}
-        table.req-grid td.col-bagging {{ background: {bagging_bg}; }}
-        table.req-grid tfoot td {{
-            background: {total_bg};
-            font-weight: 900;
-            border-top: 2px solid {hdr_bg};
-            padding: 7px 10px;
-        }}
-        .pos-req {{ color: #dc2626; font-weight: 900; }}
-        .neg-req {{ color: #16a34a; font-weight: 900; }}
-    </style>
-    """, unsafe_allow_html=True)
+def parse_num(val):
+    if val is None:
+        return None
+    s = str(val).replace(",", "").strip()
+    if s in ("", "--", "-", "None", "nan", "NaN"):
+        return None
+    try:
+        return round(float(s), 2)
+    except ValueError:
+        return None
+
+
+def fmt_num(val, show_zero=True):
+    if val is None or pd.isna(val):
+        return "--"
+    fval = round(float(val), 2)
+    if not show_zero and abs(fval) < 0.005:
+        return "--"
+    return f"{fval:.2f}"
+
+
+def inject_css(theme_name: str):
+    t = THEMES[theme_name]
+    st.markdown(
+        f"""
+        <style>
+            [data-testid="stSidebar"] {{ display: none !important; }}
+            [data-testid="collapsedControl"] {{ display: none !important; }}
+
+            .stApp {{
+                background-color: {t["bg_app"]};
+                color: {t["text"]};
+            }}
+            .block-container {{
+                padding-top: 0.65rem !important;
+                padding-bottom: 1.5rem !important;
+                padding-left: 0.65rem !important;
+                padding-right: 0.65rem !important;
+                max-width: 100% !important;
+            }}
+            div[data-testid="stVerticalBlock"] {{
+                gap: 0.35rem !important;
+            }}
+
+            .portal-banner {{
+                background: {t["card_bg"]};
+                border: 1.5px solid {t["border"]};
+                border-radius: 8px;
+                padding: 6px 10px;
+                margin-bottom: 6px;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+            }}
+            .portal-title {{
+                font-size: 16px;
+                font-weight: 900;
+                letter-spacing: 0.2px;
+            }}
+            .role-pill {{
+                font-size: 12px;
+                font-weight: 800;
+                padding: 2px 8px;
+                border-radius: 999px;
+                background: {t["sub_bg"]};
+                border: 1px solid {t["border"]};
+            }}
+
+            /* 4-block side-by-side grid */
+            .four-block-grid {{
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 6px;
+                width: 100%;
+            }}
+            @media (max-width: 1100px) {{
+                .four-block-grid {{
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }}
+            }}
+            @media (max-width: 640px) {{
+                .four-block-grid {{
+                    grid-template-columns: 1fr;
+                }}
+            }}
+
+            .q-card {{
+                background: {t["card_bg"]};
+                border: 1.5px solid {t["border"]};
+                border-radius: 7px;
+                overflow: hidden;
+            }}
+            .q-card-hdr {{
+                background: {t["hdr_bg"]};
+                color: {t["hdr_fg"]};
+                padding: 5px 7px;
+                font-size: 13px;
+                font-weight: 900;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }}
+            .q-card-sub {{
+                font-size: 11px;
+                font-weight: 800;
+                padding: 3px 7px;
+                background: {t["sub_bg"]};
+                border-bottom: 1px solid {t["border"]};
+                display: flex;
+                justify-content: space-between;
+            }}
+
+            table.compact-tbl {{
+                width: 100%;
+                border-collapse: collapse;
+                font-variant-numeric: tabular-nums;
+            }}
+            table.compact-tbl th {{
+                background: {t["sub_bg"]};
+                color: {t["text"]};
+                font-size: 11px;
+                font-weight: 900;
+                padding: 3px 4px;
+                text-align: right;
+                border-bottom: 1.5px solid {t["border"]};
+                border-right: 1px solid {t["border"]};
+            }}
+            table.compact-tbl th:first-child {{
+                text-align: left;
+                padding-left: 5px;
+            }}
+            table.compact-tbl th:last-child {{
+                border-right: none;
+            }}
+            table.compact-tbl td {{
+                font-size: 13px;
+                font-weight: 800;
+                padding: 2px 4px;
+                line-height: 1.25;
+                text-align: right;
+                border-bottom: 1px solid {t["border"]};
+                border-right: 1px solid {t["border"]};
+                white-space: nowrap;
+            }}
+            table.compact-tbl td:first-child {{
+                text-align: left;
+                padding-left: 5px;
+                font-weight: 900;
+            }}
+            table.compact-tbl td:last-child {{
+                border-right: none;
+            }}
+            table.compact-tbl td.cell-bag {{
+                background: {t["bag_bg"]};
+            }}
+            table.compact-tbl td.cell-ass {{
+                background: {t["ass_bg"]};
+            }}
+            table.compact-tbl tr.row-urgent td {{
+                background: {t["urg_bg"]};
+            }}
+            table.compact-tbl tr.row-subtotal td {{
+                background: {t["sub_bg"]};
+                font-weight: 900;
+                border-top: 1.5px solid {t["hdr_bg"]};
+                border-bottom: 1.5px solid {t["hdr_bg"]};
+            }}
+            table.compact-tbl tfoot td {{
+                background: {t["hdr_bg"]};
+                color: {t["hdr_fg"]};
+                font-weight: 900;
+                padding: 4px 5px;
+            }}
+            .val-short {{
+                color: #dc2626 !important;
+                font-weight: 900 !important;
+            }}
+            .val-surplus {{
+                color: #16a34a !important;
+                font-weight: 900 !important;
+            }}
+            .urg-tag {{
+                display: inline-block;
+                background: #dc2626;
+                color: #ffffff;
+                font-size: 9px;
+                font-weight: 900;
+                padding: 0px 4px;
+                border-radius: 3px;
+                margin-left: 3px;
+                vertical-align: middle;
+            }}
+
+            /* Buying compact table */
+            .buy-wrap {{
+                background: {t["card_bg"]};
+                border: 1.5px solid {t["border"]};
+                border-radius: 7px;
+                overflow-x: auto;
+            }}
+            table.buy-tbl {{
+                width: 100%;
+                border-collapse: collapse;
+                font-variant-numeric: tabular-nums;
+            }}
+            table.buy-tbl th {{
+                background: {t["hdr_bg"]};
+                color: {t["hdr_fg"]};
+                font-size: 12px;
+                font-weight: 900;
+                padding: 5px 8px;
+                text-align: right;
+                border-right: 1px solid rgba(255,255,255,0.2);
+            }}
+            table.buy-tbl th:first-child {{ text-align: left; }}
+            table.buy-tbl th:last-child {{ border-right: none; }}
+            table.buy-tbl td {{
+                font-size: 14px;
+                font-weight: 800;
+                padding: 3px 8px;
+                text-align: right;
+                border-bottom: 1px solid {t["border"]};
+                border-right: 1px solid {t["border"]};
+            }}
+            table.buy-tbl td:first-child {{
+                text-align: left;
+                font-weight: 900;
+            }}
+            table.buy-tbl td:last-child {{ border-right: none; }}
+            table.buy-tbl tr.row-subtotal td {{
+                background: {t["sub_bg"]};
+                font-weight: 900;
+                border-top: 1.5px solid {t["hdr_bg"]};
+                border-bottom: 1.5px solid {t["hdr_bg"]};
+            }}
+            table.buy-tbl tfoot td {{
+                background: {t["hdr_bg"]};
+                color: {t["hdr_fg"]};
+                font-weight: 900;
+                padding: 5px 8px;
+            }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
 
 @st.cache_resource
 def get_gsheet_client():
     scopes = ["https://www.googleapis.com/auth/spreadsheets"]
-    creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scopes)
+    creds = Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"], scopes=scopes
+    )
     return gspread.authorize(creds)
 
+
 @st.cache_data(ttl=120, show_spinner=False)
-def load_requirement_data() -> pd.DataFrame:
-    client = get_gsheet_client()
-    ws = client.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
-    # Rows 4 to 33 (30 sieve rows), Columns A to R
-    raw = ws.get("A4:R33")
-
-    def num_or_zero(row, idx):
-        if idx >= len(row) or row[idx] in ("", None):
-            return 0.0
-        try:
-            return round(float(str(row[idx]).replace(",", "").strip()), 2)
-        except ValueError:
-            return 0.0
-
-    def val_or_none(row, idx):
-        if idx >= len(row) or row[idx] in ("", None):
-            return None
-        try:
-            return round(float(str(row[idx]).replace(",", "").strip()), 2)
-        except ValueError:
-            return None
+def load_requirement_sheet() -> pd.DataFrame:
+    ws = get_gsheet_client().open_by_key(SPREADSHEET_ID).worksheet(REQ_SHEET_NAME)
+    raw = ws.get("A4:AN33")
 
     records = []
-    for i, r in enumerate(raw):
+    for idx, r in enumerate(raw):
         sieve = str(r[0]).strip() if len(r) > 0 and r[0] is not None else ""
         if not sieve:
             continue
-        rec = {"_sheet_row": i + 4, "Sieve": sieve}
-        for q, cfg in QUALITY_CONFIG.items():
-            rec[f"{q}_req"] = num_or_zero(r, cfg["req_col"] - 1)
-            rec[f"{q}_assort"] = val_or_none(r, cfg["assort_col"] - 1)
-            rec[f"{q}_bagging"] = val_or_none(r, cfg["bagging_col"] - 1)
+        rec = {
+            "_sheet_row": idx + 4,
+            "Sieve": sieve,
+            "Tier": "Primary" if idx < PRIMARY_SIEVE_COUNT else "Large",
+        }
+        for blk in QUALITY_BLOCKS:
+            q = blk["code"]
+            req = parse_num(r[blk["req_col"] - 1] if len(r) >= blk["req_col"] else None) or 0.0
+            bag = parse_num(r[blk["bagging_col"] - 1] if len(r) >= blk["bagging_col"] else None)
+            ass = parse_num(r[blk["assort_col"] - 1] if len(r) >= blk["assort_col"] else None)
+            sheet_fin = parse_num(r[blk["final_col"] - 1] if len(r) >= blk["final_col"] else None)
+            calc_fin = round(((bag or 0.0) + (ass or 0.0)) - req, 2)
+            fin = sheet_fin if sheet_fin is not None else calc_fin
+            urg_raw = str(r[blk["urgency_col"] - 1]).strip().upper() if len(r) >= blk["urgency_col"] and r[blk["urgency_col"] - 1] else ""
+            buy_sheet = parse_num(r[blk["buying_col"] - 1] if len(r) >= blk["buying_col"] else None)
+
+            rec[f"{q}_req"] = round(req, 2)
+            rec[f"{q}_bag"] = bag
+            rec[f"{q}_ass"] = ass
+            rec[f"{q}_fin"] = round(fin, 2)
+            rec[f"{q}_urg"] = urg_raw
+            rec[f"{q}_buy"] = buy_sheet if buy_sheet is not None else round(max(0.0, -fin), 2)
         records.append(rec)
 
     return pd.DataFrame(records)
 
-def write_quality_edits(q_code: str, edited_df: pd.DataFrame, original_df: pd.DataFrame, can_assort: bool, can_bagging: bool):
-    cfg = QUALITY_CONFIG[q_code]
-    client = get_gsheet_client()
-    ws = client.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
 
+@st.cache_data(ttl=120, show_spinner=False)
+def load_buying_sheet() -> pd.DataFrame:
+    ws = get_gsheet_client().open_by_key(SPREADSHEET_ID).worksheet(BUYING_SHEET_NAME)
+    vals = ws.get_all_values()
+    records = []
+    for r in vals:
+        if not r:
+            continue
+        sieve = str(r[0]).strip()
+        if sieve in ("", "QUALITY CODE", "QUALITY", "SEIVE SIZE", "TOTAL"):
+            continue
+        records.append(
+            {
+                "Sieve": sieve,
+                "M1": parse_num(r[1] if len(r) > 1 else None),
+                "M2": parse_num(r[2] if len(r) > 2 else None),
+                "H1": parse_num(r[3] if len(r) > 3 else None),
+                "M3": parse_num(r[4] if len(r) > 4 else None),
+            }
+        )
+    df_b = pd.DataFrame(records)
+    if not df_b.empty:
+        df_b["Tier"] = [
+            "Primary" if i < PRIMARY_SIEVE_COUNT else "Large" for i in range(len(df_b))
+        ]
+    return df_b
+
+
+def load_shortage_log() -> pd.DataFrame:
+    try:
+        ws = get_gsheet_client().open_by_key(SPREADSHEET_ID).worksheet(LOG_SHEET_NAME)
+    except gspread.WorksheetNotFound:
+        return pd.DataFrame()
+    rows = ws.get_all_records()
+    if not rows:
+        return pd.DataFrame()
+    df_log = pd.DataFrame(rows)
+    for col in ["Required", "Bagging", "Assort", "Final_Req", "Shortage_Carats"]:
+        if col in df_log.columns:
+            df_log[col] = pd.to_numeric(df_log[col], errors="coerce").fillna(0.0).round(2)
+    return df_log
+
+
+def append_shortage_snapshot(df_after: pd.DataFrame, trigger_label: str):
+    """Appends shortage / URGENT rows to SHORTAGE_LOG so slowdowns have a date-stamped audit trail."""
+    now = datetime.now()
+    snap_date = now.strftime("%Y-%m-%d")
+    snap_time = now.strftime("%H:%M:%S")
+
+    log_rows = []
+    for _, row in df_after.iterrows():
+        sieve = row["Sieve"]
+        for blk in QUALITY_BLOCKS:
+            q = blk["code"]
+            req = float(row[f"{q}_req"] or 0.0)
+            bag = float(row[f"{q}_bag"] or 0.0)
+            ass = float(row[f"{q}_ass"] or 0.0)
+            fin = float(row[f"{q}_fin"] or 0.0)
+            urg = str(row[f"{q}_urg"] or "").strip()
+            shortage = round(max(0.0, -fin), 2)
+
+            if fin < -0.001 or urg != "":
+                log_rows.append(
+                    [
+                        snap_date,
+                        snap_time,
+                        q,
+                        blk["grade"],
+                        sieve,
+                        round(req, 2),
+                        round(bag, 2),
+                        round(ass, 2),
+                        round(fin, 2),
+                        shortage,
+                        urg if urg else "SHORTAGE",
+                        trigger_label,
+                    ]
+                )
+
+    if not log_rows:
+        return 0
+
+    sh = get_gsheet_client().open_by_key(SPREADSHEET_ID)
+    try:
+        ws_log = sh.worksheet(LOG_SHEET_NAME)
+        existing = ws_log.get("A1:L1")
+        if not existing:
+            ws_log.append_row(
+                [
+                    "Snapshot_Date",
+                    "Snapshot_Time",
+                    "Quality",
+                    "Grade",
+                    "Sieve_Size",
+                    "Required",
+                    "Bagging",
+                    "Assort",
+                    "Final_Req",
+                    "Shortage_Carats",
+                    "Status_Flag",
+                    "Trigger",
+                ],
+                value_input_option="USER_ENTERED",
+            )
+    except gspread.WorksheetNotFound:
+        ws_log = sh.add_worksheet(title=LOG_SHEET_NAME, rows=2000, cols=12)
+        ws_log.append_row(
+            [
+                "Snapshot_Date",
+                "Snapshot_Time",
+                "Quality",
+                "Grade",
+                "Sieve_Size",
+                "Required",
+                "Bagging",
+                "Assort",
+                "Final_Req",
+                "Shortage_Carats",
+                "Status_Flag",
+                "Trigger",
+            ],
+            value_input_option="USER_ENTERED",
+        )
+
+    ws_log.append_rows(log_rows, value_input_option="USER_ENTERED")
+    return len(log_rows)
+
+
+def save_edits_to_sheet(
+    edited_df: pd.DataFrame,
+    original_df: pd.DataFrame,
+    can_bagging: bool,
+    can_assort: bool,
+    role_name: str,
+):
+    ws = get_gsheet_client().open_by_key(SPREADSHEET_ID).worksheet(REQ_SHEET_NAME)
     batch_updates = []
+    updated_df = original_df.copy()
+
     for idx in range(len(edited_df)):
         sheet_row = int(original_df.loc[idx, "_sheet_row"])
-        if can_assort:
-            old_a = original_df.loc[idx, f"{q_code}_assort"]
-            new_a = edited_df.loc[idx, f"{q_code}_assort"]
-            new_a_clean = None if pd.isna(new_a) else round(float(new_a), 2)
-            if old_a != new_a_clean:
-                col_letter = gspread.utils.rowcol_to_a1(sheet_row, cfg["assort_col"])
-                batch_updates.append({"range": f"{SHEET_NAME}!{col_letter}", "values": [["" if new_a_clean is None else new_a_clean]]})
+        for blk in QUALITY_BLOCKS:
+            q = blk["code"]
+            if can_bagging:
+                old_b = original_df.loc[idx, f"{q}_bag"]
+                new_b = edited_df.loc[idx, f"{q}_bag"]
+                new_b_clean = None if pd.isna(new_b) else round(float(new_b), 2)
+                if old_b != new_b_clean:
+                    a1 = gspread.utils.rowcol_to_a1(sheet_row, blk["bagging_col"])
+                    batch_updates.append(
+                        {"range": f"{REQ_SHEET_NAME}!{a1}", "values": [["" if new_b_clean is None else new_b_clean]]}
+                    )
+                    updated_df.loc[idx, f"{q}_bag"] = new_b_clean
 
-        if can_bagging:
-            old_b = original_df.loc[idx, f"{q_code}_bagging"]
-            new_b = edited_df.loc[idx, f"{q_code}_bagging"]
-            new_b_clean = None if pd.isna(new_b) else round(float(new_b), 2)
-            if old_b != new_b_clean:
-                col_letter = gspread.utils.rowcol_to_a1(sheet_row, cfg["bagging_col"])
-                batch_updates.append({"range": f"{SHEET_NAME}!{col_letter}", "values": [["" if new_b_clean is None else new_b_clean]]})
+            if can_assort:
+                old_a = original_df.loc[idx, f"{q}_ass"]
+                new_a = edited_df.loc[idx, f"{q}_ass"]
+                new_a_clean = None if pd.isna(new_a) else round(float(new_a), 2)
+                if old_a != new_a_clean:
+                    a1 = gspread.utils.rowcol_to_a1(sheet_row, blk["assort_col"])
+                    batch_updates.append(
+                        {"range": f"{REQ_SHEET_NAME}!{a1}", "values": [["" if new_a_clean is None else new_a_clean]]}
+                    )
+                    updated_df.loc[idx, f"{q}_ass"] = new_a_clean
+
+            req_val = float(updated_df.loc[idx, f"{q}_req"] or 0.0)
+            b_val = float(updated_df.loc[idx, f"{q}_bag"] or 0.0)
+            a_val = float(updated_df.loc[idx, f"{q}_ass"] or 0.0)
+            updated_df.loc[idx, f"{q}_fin"] = round((b_val + a_val) - req_val, 2)
 
     if batch_updates:
         ws.batch_update(batch_updates, value_input_option="USER_ENTERED")
-        load_requirement_data.clear()
-    return len(batch_updates)
+        logged_cnt = append_shortage_snapshot(updated_df, f"Edit:{role_name}")
+        load_requirement_sheet.clear()
+        return len(batch_updates), logged_cnt
+    return 0, 0
 
-# Session state defaults
+
+# Session state initialization
 if "role" not in st.session_state:
     st.session_state.role = "Guest"
 if "theme" not in st.session_state:
     st.session_state.theme = "Crisp Daylight"
-if "active_tab" not in st.session_state:
-    st.session_state.active_tab = "M1"
+if "view" not in st.session_state:
+    st.session_state.view = "4-Block View"
+for _blk in QUALITY_BLOCKS:
+    key_exp = f"exp_{_blk['code']}"
+    if key_exp not in st.session_state:
+        st.session_state[key_exp] = False
 
-# --- SIDEBAR ---
-with st.sidebar:
-    st.markdown("### 💎 DIAMOND REQ")
-    st.session_state.theme = st.selectbox(
-        "Theme",
-        ["Crisp Daylight", "Midnight Slate", "Warm Ivory"],
-        index=["Crisp Daylight", "Midnight Slate", "Warm Ivory"].index(st.session_state.theme),
-    )
+inject_css(st.session_state.theme)
 
-    st.markdown("---")
-    st.markdown("**User Role**")
-    selected_role = st.selectbox(
-        "Select Role",
-        list(ROLE_PERMISSIONS.keys()),
-        index=list(ROLE_PERMISSIONS.keys()).index(st.session_state.role),
-        label_visibility="collapsed",
-    )
-    if selected_role != "Guest":
-        entered_pin = st.text_input("PIN", type="password", placeholder="Enter PIN")
-        if st.button("Unlock Role", use_container_width=True):
-            if entered_pin.strip() == ROLE_PERMISSIONS[selected_role]["pin"]:
-                st.session_state.role = selected_role
-                st.success(f"Active: {selected_role}")
+# --- TOP CONTROL BAR (NO SIDEBAR) ---
+st.markdown(
+    f"""
+    <div class="portal-banner">
+        <div>
+            <span class="portal-title">💎 DIAMOND PORTAL</span>
+            &nbsp;<span class="role-pill">Role: {st.session_state.role}</span>
+        </div>
+        <div style="font-size:12px; font-weight:700; opacity:0.8;">
+            Option B · 4-Block Side-by-Side · Sieves 6(0)–6.5 Primary
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+nav_c1, nav_c2, nav_c3, nav_c4, nav_c5, nav_c6 = st.columns([1.4, 1.3, 1.4, 1.6, 1.3, 0.9])
+with nav_c1:
+    if st.button("📊 4-Block View", use_container_width=True, type="primary" if st.session_state.view == "4-Block View" else "secondary"):
+        st.session_state.view = "4-Block View"
+        st.rerun()
+with nav_c2:
+    if st.button("🛒 Final Buying", use_container_width=True, type="primary" if st.session_state.view == "Final Buying" else "secondary"):
+        st.session_state.view = "Final Buying"
+        st.rerun()
+with nav_c3:
+    if st.button("📋 Shortage Log", use_container_width=True, type="primary" if st.session_state.view == "Shortage Log" else "secondary"):
+        st.session_state.view = "Shortage Log"
+        st.rerun()
+with nav_c4:
+    with st.popover(f"🔐 {st.session_state.role}", use_container_width=True):
+        sel_role = st.selectbox(
+            "Role",
+            list(ROLE_PERMISSIONS.keys()),
+            index=list(ROLE_PERMISSIONS.keys()).index(st.session_state.role),
+        )
+        pin_in = st.text_input("PIN", type="password", placeholder="1111 / 2222 / 9999")
+        if st.button("Apply Role", use_container_width=True):
+            if sel_role == "Guest":
+                st.session_state.role = "Guest"
+                st.rerun()
+            elif pin_in.strip() == ROLE_PERMISSIONS[sel_role]["pin"]:
+                st.session_state.role = sel_role
+                st.rerun()
             else:
                 st.error("Invalid PIN")
-    else:
-        st.session_state.role = "Guest"
-
-    st.markdown("---")
-    st.markdown("**Quality Views**")
-    for q_key, q_info in QUALITY_CONFIG.items():
-        if st.button(q_info["label"], key=f"nav_{q_key}", use_container_width=True,
-                     type="primary" if st.session_state.active_tab == q_key else "secondary"):
-            st.session_state.active_tab = q_key
-            st.rerun()
-
-    st.button("Final Buying (Soon)", disabled=True, use_container_width=True)
-
-    st.markdown("---")
-    if st.button("🔄 Refresh Sheet", use_container_width=True):
-        load_requirement_data.clear()
+with nav_c5:
+    theme_choice = st.selectbox(
+        "Theme",
+        list(THEMES.keys()),
+        index=list(THEMES.keys()).index(st.session_state.theme),
+        label_visibility="collapsed",
+    )
+    if theme_choice != st.session_state.theme:
+        st.session_state.theme = theme_choice
         st.rerun()
-
-inject_compact_css(st.session_state.theme)
+with nav_c6:
+    if st.button("🔄", help="Refresh sheet data", use_container_width=True):
+        load_requirement_sheet.clear()
+        load_buying_sheet.clear()
+        st.rerun()
 
 role = st.session_state.role
 perms = ROLE_PERMISSIONS[role]
-q = st.session_state.active_tab
-q_cfg = QUALITY_CONFIG[q]
 
+# Load primary requirement data
 try:
-    df = load_requirement_data()
+    df = load_requirement_sheet()
 except Exception as e:
-    st.error(f"Could not load Google Sheet data: {e}")
-    st.info("Ensure your Streamlit secrets (`gcp_service_account`) are configured and the sheet is shared with the service account email.")
+    st.error(f"Could not load `{REQ_SHEET_NAME}`: {e}")
     st.stop()
 
-# Compute live final requirement = REQ - ASSORT - BAGGING
-req_s = df[f"{q}_req"].fillna(0.0)
-assort_s = df[f"{q}_assort"].fillna(0.0)
-bagging_s = df[f"{q}_bagging"].fillna(0.0)
-final_s = (req_s - assort_s - bagging_s).round(2)
 
-st.markdown(f"### **{q_cfg['label']}** &nbsp;|&nbsp; Role: **{role}**")
+def render_quality_rows(sub_df: pd.DataFrame, q: str, expanded: bool) -> str:
+    html_parts = []
+    for _, r in sub_df.iterrows():
+        sieve = r["Sieve"]
+        req = float(r[f"{q}_req"] or 0.0)
+        bag_raw = r[f"{q}_bag"]
+        ass_raw = r[f"{q}_ass"]
+        fin = float(r[f"{q}_fin"] or 0.0)
+        urg = str(r[f"{q}_urg"] or "").strip()
 
-st.markdown(f"""
-<div class="kpi-row">
-    <div class="kpi-box"><div class="kpi-lbl">Required</div><div class="kpi-val">{req_s.sum():.2f}</div></div>
-    <div class="kpi-box"><div class="kpi-lbl">Assort ({q})</div><div class="kpi-val">{assort_s.sum():.2f}</div></div>
-    <div class="kpi-box"><div class="kpi-lbl">Bagging ({q})</div><div class="kpi-val">{bagging_s.sum():.2f}</div></div>
-    <div class="kpi-box"><div class="kpi-lbl">Final Req ({q})</div><div class="kpi-val">{final_s.sum():.2f}</div></div>
-</div>
-""", unsafe_allow_html=True)
+        fin_cls = "val-short" if fin < -0.001 else ("val-surplus" if fin > 0.001 else "")
+        tr_cls = " class='row-urgent'" if urg else ""
+        urg_badge = f"<span class='urg-tag'>{urg}</span>" if urg else ""
 
-# Compact high-contrast column-separated view
-rows_html = []
-for i, r in df.iterrows():
-    r_val = float(req_s.iloc[i])
-    a_val = float(assort_s.iloc[i])
-    b_val = float(bagging_s.iloc[i])
-    f_val = float(final_s.iloc[i])
-    f_cls = "pos-req" if f_val > 0.001 else ("neg-req" if f_val < -0.001 else "")
-    rows_html.append(
-        f"<tr>"
-        f"<td>{r['Sieve']}</td>"
-        f"<td>{r_val:.2f}</td>"
-        f"<td class='col-assort'>{'' if pd.isna(r[f'{q}_assort']) else f'{a_val:.2f}'}</td>"
-        f"<td class='col-bagging'>{'' if pd.isna(r[f'{q}_bagging']) else f'{b_val:.2f}'}</td>"
-        f"<td class='{f_cls}'>{f_val:.2f}</td>"
-        f"</tr>"
-    )
+        if expanded:
+            html_parts.append(
+                f"<tr{tr_cls}>"
+                f"<td>{sieve}{urg_badge}</td>"
+                f"<td>{fmt_num(req)}</td>"
+                f"<td class='cell-bag'>{fmt_num(bag_raw, show_zero=False)}</td>"
+                f"<td class='cell-ass'>{fmt_num(ass_raw, show_zero=False)}</td>"
+                f"<td class='{fin_cls}'>{fmt_num(fin)}</td>"
+                f"</tr>"
+            )
+        else:
+            html_parts.append(
+                f"<tr{tr_cls}>"
+                f"<td>{sieve}{urg_badge}</td>"
+                f"<td class='{fin_cls}'>{fmt_num(fin)}</td>"
+                f"</tr>"
+            )
+    return "".join(html_parts)
 
-st.markdown(f"""
-<div class="compact-table-wrap">
-  <table class="req-grid">
-    <thead>
-      <tr>
-        <th>SIEVE</th>
-        <th>REQ (LOCKED)</th>
-        <th>ASSORT ({q})</th>
-        <th>BAGGING ({q})</th>
-        <th>FINAL REQ ({q})</th>
-      </tr>
-    </thead>
-    <tbody>{''.join(rows_html)}</tbody>
-    <tfoot>
-      <tr>
-        <td>TOTAL</td>
-        <td>{req_s.sum():.2f}</td>
-        <td>{assort_s.sum():.2f}</td>
-        <td>{bagging_s.sum():.2f}</td>
-        <td>{final_s.sum():.2f}</td>
-      </tr>
-    </tfoot>
-  </table>
-</div>
-""", unsafe_allow_html=True)
 
-# Editable grid for authorized roles
-if perms["can_assort"] or perms["can_bagging"]:
-    st.markdown(f"**Quick Entry ({role})** — edit allowed columns below, then click **Save to Sheet**:")
-    edit_cols = ["Sieve", f"{q}_req"]
-    col_config = {
-        "Sieve": st.column_config.TextColumn("Sieve", disabled=True),
-        f"{q}_req": st.column_config.NumberColumn("Req (Locked)", disabled=True, format="%.2f"),
-    }
-    if perms["can_assort"]:
-        edit_cols.append(f"{q}_assort")
-        col_config[f"{q}_assort"] = st.column_config.NumberColumn(f"Assort ({q})", disabled=False, format="%.2f")
-    if perms["can_bagging"]:
-        edit_cols.append(f"{q}_bagging")
-        col_config[f"{q}_bagging"] = st.column_config.NumberColumn(f"Bagging ({q})", disabled=False, format="%.2f")
+def render_four_cards(sub_df: pd.DataFrame, label_prefix: str, include_footer_total: bool = False):
+    st.markdown('<div class="four-block-grid">', unsafe_allow_html=True)
+    for blk in QUALITY_BLOCKS:
+        q = blk["code"]
+        exp = st.session_state[f"exp_{q}"]
+        req_sum = float(sub_df[f"{q}_req"].fillna(0.0).sum())
+        bag_sum = float(sub_df[f"{q}_bag"].fillna(0.0).sum())
+        ass_sum = float(sub_df[f"{q}_ass"].fillna(0.0).sum())
+        fin_sum = float(sub_df[f"{q}_fin"].fillna(0.0).sum())
+        short_sum = round(float((-sub_df[f"{q}_fin"].clip(upper=0.0)).sum()), 2)
+        urg_cnt = int((sub_df[f"{q}_urg"].fillna("") != "").sum())
 
-    edited_df = st.data_editor(
-        df[edit_cols],
-        hide_index=True,
-        use_container_width=True,
-        height=380,
-        column_config=col_config,
-        key=f"editor_{q}_{role}",
-    )
+        fin_sum_cls = "val-short" if fin_sum < -0.001 else ("val-surplus" if fin_sum > 0.001 else "")
+        body_html = render_quality_rows(sub_df, q, exp)
 
-    if st.button("💾 Save to Sheet", type="primary"):
-        full_edited = df.copy()
-        for c in edit_cols:
-            if c != "Sieve":
-                full_edited[c] = edited_df[c]
-        count = write_quality_edits(q, full_edited, df, perms["can_assort"], perms["can_bagging"])
-        st.success(f"Updated {count} cell(s) in {SHEET_NAME}.")
-        st.rerun()
-else:
-    st.caption("Guest mode is view-only. Unlock **Assort**, **Bagging**, or **Developer** from the sidebar to enter values.")
+        if exp:
+            thead = (
+                "<tr>"
+                "<th>SIEVE</th><th>REQ</th><th>BAG</th><th>ASS</th><th>FINAL</th>"
+                "</tr>"
+            )
+            sub_row = (
+                f"<tr class='row-subtotal'>"
+                f"<td>{label_prefix}</td>"
+                f"<td>{req_sum:.2f}</td>"
+                f"<td class='cell-bag'>{bag_sum:.2f}</td>"
+                f"<td class='cell-ass'>{ass_sum:.2f}</td>"
+                f"<td class='{fin_sum_cls}'>{fin_sum:.2f}</td>"
+                f"</tr>"
+            )
+        else:
+            thead = "<tr><th>SIEVE</th><th>FINAL REQ</th></tr>"
+            sub_row = (
+                f"<tr class='row-subtotal'>"
+                f"<td>{label_prefix}</td>"
+                f"<td class='{fin_sum_cls}'>{fin_sum:.2f}</td>"
+                f"</tr>"
+            )
+
+        tfoot_html = ""
+        if include_footer_total:
+            colspan = 5 if exp else 2
+            tfoot_html = (
+                f"<tfoot><tr><td colspan='{colspan}'>"
+                f"Shortage: {short_sum:.2f} ct · Urgent: {urg_cnt}"
+                f"</td></tr></tfoot>"
+            )
+
+        urg_pill = f" · <span style='color:#fca5a5;'>{urg_cnt} URG</span>" if urg_cnt > 0 else ""
+
+        st.markdown(
+            f"""
+            <div class="q-card">
+                <div class="q-card-hdr">
+                    <span>{blk["label"]}</span>
+                    <span>Short {short_sum:.1f}{urg_pill}</span>
+                </div>
+                <div class="q-card-sub">
+                    <span>Req: <b>{req_sum:.1f}</b></span>
+                    <span>Bag+Ass: <b>{(bag_sum + ass_sum):.1f}</b></span>
+                </div>
+                <table class="compact-tbl">
+                    <thead>{thead}</thead>
+                    <tbody>
+                        {body_html}
+                        {sub_row}
+                    </tbody>
+                    {tfoot_html}
+                </table>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+# ==============================================================================
+# VIEW 1: 4-BLOCK VIEW (ALL 4 QUALITIES SIDE-BY-SIDE + EXPAND/COLLAPSE + SIEVE 7-12.5 PANE)
+# ==============================================================================
+if st.session_state.view == "4-Block View":
+    t_c1, t_c2, t_c3, t_c4, t_c5 = st.columns([1, 1, 1, 1, 1.3])
+    for col_box, blk in zip([t_c1, t_c2, t_c3, t_c4], QUALITY_BLOCKS):
+        q = blk["code"]
+        is_exp = st.session_state[f"exp_{q}"]
+        with col_box:
+            if st.button(
+                f"{'−' if is_exp else '+'} {q} {'Full' if not is_exp else 'Compact'}",
+                key=f"btn_exp_{q}",
+                use_container_width=True,
+            ):
+                st.session_state[f"exp_{q}"] = not is_exp
+                st.rerun()
+    with t_c5:
+        only_short_urg = st.toggle("Only Shortage / URGENT", value=False)
+
+    work_df = df.copy()
+    if only_short_urg:
+        mask = pd.Series(False, index=work_df.index)
+        for blk in QUALITY_BLOCKS:
+            q = blk["code"]
+            mask = mask | (work_df[f"{q}_fin"].fillna(0.0) < -0.001) | (work_df[f"{q}_urg"].fillna("") != "")
+        work_df = work_df[mask].reset_index(drop=True)
+
+    primary_df = work_df[work_df["Tier"] == "Primary"]
+    large_df = work_df[work_df["Tier"] == "Large"]
+
+    render_four_cards(primary_df, "SUB (6–6.5)", include_footer_total=large_df.empty)
+
+    if not large_df.empty:
+        large_short_total = sum(
+            float((-large_df[f"{b['code']}_fin"].clip(upper=0.0)).sum()) for b in QUALITY_BLOCKS
+        )
+        with st.expander(
+            f"▶ Sieves Below 6.5 (7 to 12.5) · {len(large_df)} sizes · Shortage: {large_short_total:.2f} ct",
+            expanded=False,
+        ):
+            render_four_cards(large_df, "SUB (7–12.5)", include_footer_total=False)
+
+        # Grand total across all visible rows
+        gt_parts = []
+        for blk in QUALITY_BLOCKS:
+            q = blk["code"]
+            g_fin = float(work_df[f"{q}_fin"].fillna(0.0).sum())
+            g_short = round(float((-work_df[f"{q}_fin"].clip(upper=0.0)).sum()), 2)
+            gt_parts.append(f"<b>{q}</b>: Final {g_fin:+.2f} (Buy {g_short:.2f})")
+        st.markdown(
+            f"<div class='q-card-sub' style='border:1.5px solid; border-radius:6px; margin-top:4px; padding:6px 8px;'>"
+            f"<span><b>GRAND TOTAL</b></span><span>{' &nbsp;|&nbsp; '.join(gt_parts)}</span>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
+    # Role-based quick editor (only shown when unlocked via PIN)
+    if perms["can_bagging"] or perms["can_assort"]:
+        st.markdown("---")
+        st.markdown(f"**Quick Entry ({role})** — edit allowed columns below and click **Save & Log Shortage Snapshot**:")
+        edit_cols = ["Sieve"]
+        col_cfg = {"Sieve": st.column_config.TextColumn("Sieve", disabled=True)}
+        for blk in QUALITY_BLOCKS:
+            q = blk["code"]
+            if perms["can_bagging"]:
+                c_bag = f"{q}_bag"
+                edit_cols.append(c_bag)
+                col_cfg[c_bag] = st.column_config.NumberColumn(f"Bag {q}", format="%.2f")
+            if perms["can_assort"]:
+                c_ass = f"{q}_ass"
+                edit_cols.append(c_ass)
+                col_cfg[c_ass] = st.column_config.NumberColumn(f"Ass {q}", format="%.2f")
+
+        edited_grid = st.data_editor(
+            df[edit_cols],
+            hide_index=True,
+            use_container_width=True,
+            height=340,
+            column_config=col_cfg,
+            key=f"grid_{role}",
+        )
+        if st.button("💾 Save & Log Shortage Snapshot", type="primary"):
+            cells_updated, log_added = save_edits_to_sheet(
+                edited_grid, df, perms["can_bagging"], perms["can_assort"], role
+            )
+            st.success(f"Updated {cells_updated} sheet cell(s) and logged {log_added} shortage/urgent record(s).")
+            st.rerun()
+
+
+# ==============================================================================
+# VIEW 2: FINAL BUYING (FOR BUYING + COLLAPSIBLE SIEVES 7 TO 12.5)
+# ==============================================================================
+elif st.session_state.view == "Final Buying":
+    try:
+        df_buy = load_buying_sheet()
+    except Exception:
+        df_buy = pd.DataFrame()
+
+    if df_buy.empty:
+        # Fallback directly from FINAL REQUIREMENT buying columns if FINAL BUYING tab is empty/missing
+        buy_rows = []
+        for _, r in df.iterrows():
+            buy_rows.append(
+                {
+                    "Sieve": r["Sieve"],
+                    "Tier": r["Tier"],
+                    "M1": r["M1_buy"],
+                    "M2": r["M2_buy"],
+                    "H1": r["H1_buy"],
+                    "M3": r["M3_buy"],
+                }
+            )
+        df_buy = pd.DataFrame(buy_rows)
+
+    def render_buying_table(sub_b: pd.DataFrame, sub_label: str, show_grand_total: bool = False):
+        q_cols = ["M1", "M2", "H1", "M3"]
+        body_trs = []
+        for _, r in sub_b.iterrows():
+            cells = [f"<td>{r['Sieve']}</td>"]
+            for qc in q_cols:
+                val = r[qc]
+                fval = float(val) if val is not None and not pd.isna(val) else 0.0
+                cls = " class='val-short'" if fval > 0.001 else ""
+                cells.append(f"<td{cls}>{fmt_num(val, show_zero=False)}</td>")
+            body_trs.append(f"<tr>{''.join(cells)}</tr>")
+
+        sub_cells = [f"<td>{sub_label}</td>"]
+        for qc in q_cols:
+            s_val = float(sub_b[qc].fillna(0.0).sum())
+            sub_cells.append(f"<td class='val-short'>{s_val:.2f}</td>")
+        body_trs.append(f"<tr class='row-subtotal'>{''.join(sub_cells)}</tr>")
+
+        foot_html = ""
+        if show_grand_total:
+            gt_cells = ["<td>GRAND TOTAL</td>"]
+            for qc in q_cols:
+                g_val = float(df_buy[qc].fillna(0.0).sum())
+                gt_cells.append(f"<td>{g_val:.2f}</td>")
+            foot_html = f"<tfoot><tr>{''.join(gt_cells)}</tr></tfoot>"
+
+        st.markdown(
+            f"""
+            <div class="buy-wrap">
+                <table class="buy-tbl">
+                    <thead>
+                        <tr>
+                            <th>SEIVE SIZE</th>
+                            <th>M1 (VVS/DEF)</th>
+                            <th>M2 (VVS-VS/GH)</th>
+                            <th>H1 (VVS-EF)</th>
+                            <th>M3 (SI/GH)</th>
+                        </tr>
+                    </thead>
+                    <tbody>{''.join(body_trs)}</tbody>
+                    {foot_html}
+                </table>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    b_prim = df_buy[df_buy["Tier"] == "Primary"]
+    b_large = df_buy[df_buy["Tier"] == "Large"]
+
+    render_buying_table(b_prim, "SUBTOTAL (6–6.5)", show_grand_total=b_large.empty)
+
+    if not b_large.empty:
+        with st.expander(f"▶ Sieves Below 6.5 (7 to 12.5) · {len(b_large)} sizes", expanded=False):
+            render_buying_table(b_large, "SUBTOTAL (7–12.5)", show_grand_total=False)
+
+        gt_cells = ["<td>GRAND TOTAL</td>"]
+        for qc in ["M1", "M2", "H1", "M3"]:
+            gt_cells.append(f"<td>{float(df_buy[qc].fillna(0.0).sum()):.2f}</td>")
+        st.markdown(
+            f"<div class='buy-wrap' style='margin-top:4px;'><table class='buy-tbl'><tfoot><tr>{''.join(gt_cells)}</tr></tfoot></table></div>",
+            unsafe_allow_html=True,
+        )
+
+
+# ==============================================================================
+# VIEW 3: SHORTAGE LOG (PRODUCTION SLOWDOWN TRACK RECORD)
+# ==============================================================================
+elif st.session_state.view == "Shortage Log":
+    log_c1, log_c2 = st.columns([2, 1])
+    with log_c1:
+        st.markdown("**Shortage & Urgency Track Record** — proves which quality, sieve, and date had low Bagging/Assort and high shortage.")
+    with log_c2:
+        if st.button("📸 Capture Live Snapshot Now", use_container_width=True):
+            added = append_shortage_snapshot(df, f"Manual:{role}")
+            st.success(f"Recorded {added} shortage/urgent row(s) to `{LOG_SHEET_NAME}`.")
+            st.rerun()
+
+    df_log = load_shortage_log()
+    if df_log.empty:
+        st.info(
+            f"No historical rows in `{LOG_SHEET_NAME}` yet. Click **📸 Capture Live Snapshot Now** "
+            f"(or save edits in **4-Block View**) to start building your date-stamped slowdown evidence log."
+        )
+    else:
+        f1, f2, f3 = st.columns(3)
+        with f1:
+            q_filter = st.multiselect(
+                "Quality",
+                options=sorted(df_log["Quality"].dropna().unique().tolist()) if "Quality" in df_log.columns else [],
+            )
+        with f2:
+            sieve_filter = st.multiselect(
+                "Sieve Size",
+                options=sorted(df_log["Sieve_Size"].astype(str).dropna().unique().tolist()) if "Sieve_Size" in df_log.columns else [],
+            )
+        with f3:
+            flag_filter = st.multiselect(
+                "Status Flag",
+                options=sorted(df_log["Status_Flag"].astype(str).dropna().unique().tolist()) if "Status_Flag" in df_log.columns else [],
+            )
+
+        filtered = df_log.copy()
+        if q_filter:
+            filtered = filtered[filtered["Quality"].isin(q_filter)]
+        if sieve_filter:
+            filtered = filtered[filtered["Sieve_Size"].astype(str).isin(sieve_filter)]
+        if flag_filter:
+            filtered = filtered[filtered["Status_Flag"].astype(str).isin(flag_filter)]
+
+        st.dataframe(filtered, use_container_width=True, hide_index=True, height=420)
