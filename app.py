@@ -137,6 +137,10 @@ def fmt_num(val, show_zero=True):
     return f"{fval:.2f}"
 
 
+def sum_negative(series: pd.Series) -> float:
+    return round(float(series.fillna(0.0).clip(upper=0.0).sum()), 2)
+
+
 def inject_css(theme_name: str):
     t = THEMES.get(theme_name, THEMES["Light"])
 
@@ -153,10 +157,31 @@ header[data-testid="stHeader"] {{ background: transparent !important; height: 2.
     background-color: {t["card_bg"]} !important;
     color: {t["text"]} !important;
     border-right: 1.5px solid {t["border"]} !important;
+    min-width: 225px !important;
 }}
-[data-testid="stSidebar"] * {{
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {{
+    gap: 0.55rem !important;
+}}
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {{
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+}}
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+[data-testid="stSidebar"] label p {{
     color: {t["text"]} !important;
+    line-height: 1.35 !important;
+    margin: 0 !important;
+    overflow: visible !important;
 }}
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] {{
+    min-height: 20px !important;
+    margin-bottom: 4px !important;
+}}
+[data-testid="stSidebar"] hr {{
+    margin: 6px 0 !important;
+    border-color: {t["border"]} !important;
+}}
+
 .block-container {{
     padding-top: 2.3rem !important;
     padding-bottom: 1.2rem !important;
@@ -167,11 +192,10 @@ header[data-testid="stHeader"] {{ background: transparent !important; height: 2.
 div[data-testid="stVerticalBlock"] {{
     gap: 0.25rem !important;
 }}
-div[data-testid="stMarkdownContainer"] p {{
+.block-container div[data-testid="stMarkdownContainer"] p {{
     margin-bottom: 0 !important;
 }}
 
-/* High-contrast buttons in both Light and Dark modes */
 .stButton > button,
 .stDownloadButton > button {{
     background-color: {t["btn_bg"]} !important;
@@ -179,8 +203,8 @@ div[data-testid="stMarkdownContainer"] p {{
     border: 1.5px solid {t["btn_border"]} !important;
     font-weight: 800 !important;
     font-size: 12px !important;
-    min-height: 34px !important;
-    padding: 3px 8px !important;
+    min-height: 36px !important;
+    padding: 4px 8px !important;
     border-radius: 6px !important;
     white-space: nowrap !important;
 }}
@@ -227,7 +251,7 @@ div[data-testid="stMarkdownContainer"] p {{
     color: {t["btn_fg"]} !important;
     border-color: {t["btn_border"]} !important;
     font-weight: 800 !important;
-    min-height: 34px !important;
+    min-height: 36px !important;
 }}
 [data-baseweb="select"] span {{
     color: {t["btn_fg"]} !important;
@@ -262,7 +286,6 @@ div[data-testid="stMarkdownContainer"] p {{
     border: 1px solid {t["border"]};
 }}
 
-/* Automatic layout adaptation by screen width and aspect ratio */
 .four-block-grid {{
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -562,7 +585,7 @@ if "view" not in st.session_state or st.session_state.view not in ("M1, M2, H1 &
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.markdown("### 💎 DIAMOND REQ")
+    st.markdown("#### 💎 DIAMOND REQ")
 
     if st.button(
         "M1, M2, H1 & M3",
@@ -583,7 +606,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("**Role Selector**")
     sel_role = st.selectbox(
-        "Role",
+        "Select Role",
         list(ROLE_PERMISSIONS.keys()),
         index=list(ROLE_PERMISSIONS.keys()).index(st.session_state.role),
         label_visibility="collapsed",
@@ -605,7 +628,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("**Appearance**")
     theme_choice = st.selectbox(
-        "Theme",
+        "Select Theme",
         ["Light", "Dark"],
         index=["Light", "Dark"].index(st.session_state.theme),
         label_visibility="collapsed",
@@ -628,7 +651,7 @@ perms = ROLE_PERMISSIONS[role]
 st.markdown(
     f'<div class="portal-banner"><div><span class="portal-title">💎 {st.session_state.view}</span>'
     f'&nbsp;<span class="role-pill">Role: {role}</span></div>'
-    f'<div style="font-size:11px;font-weight:800;opacity:0.8;">Full 4-Block · Primary Sieves 6(0)–6.5</div></div>',
+    f'<div style="font-size:11px;font-weight:800;opacity:0.8;">Final Req Sum = Negative Only · Primary Sieves 6(0)–6.5</div></div>',
     unsafe_allow_html=True,
 )
 
@@ -643,13 +666,12 @@ def build_four_cards_full_html(sub_df: pd.DataFrame, sub_label: str, only_negati
     cards = []
     for blk in QUALITY_BLOCKS:
         q = blk["code"]
-        req_sum = float(sub_df[f"{q}_req"].fillna(0.0).sum())
-        bag_sum = float(sub_df[f"{q}_bag"].fillna(0.0).sum())
-        ass_sum = float(sub_df[f"{q}_ass"].fillna(0.0).sum())
-        fin_sum = float(sub_df[f"{q}_fin"].fillna(0.0).sum())
-        short_sum = round(float((-sub_df[f"{q}_fin"].clip(upper=0.0)).sum()), 2)
+        req_sum = round(float(sub_df[f"{q}_req"].fillna(0.0).sum()), 2)
+        bag_sum = round(float(sub_df[f"{q}_bag"].fillna(0.0).sum()), 2)
+        ass_sum = round(float(sub_df[f"{q}_ass"].fillna(0.0).sum()), 2)
+        neg_fin_sum = sum_negative(sub_df[f"{q}_fin"])
         urg_cnt = int((sub_df[f"{q}_urg"].fillna("") != "").sum())
-        fin_sum_cls = "val-short" if fin_sum < -0.001 else ("val-surplus" if fin_sum > 0.001 else "")
+        neg_fin_cls = "val-short" if neg_fin_sum < -0.001 else ""
 
         body_rows = []
         for _, r in sub_df.iterrows():
@@ -687,14 +709,14 @@ def build_four_cards_full_html(sub_df: pd.DataFrame, sub_label: str, only_negati
             f"<td>{req_sum:.2f}</td>"
             f'<td class="cell-bag">{bag_sum:.2f}</td>'
             f'<td class="cell-ass">{ass_sum:.2f}</td>'
-            f'<td class="{fin_sum_cls}">{fin_sum:.2f}</td>'
+            f'<td class="{neg_fin_cls}">{neg_fin_sum:.2f}</td>'
             f"</tr>"
         )
         urg_pill = f' · <span style="color:#fca5a5;">{urg_cnt} URG</span>' if urg_cnt > 0 else ""
 
         cards.append(
             f'<div class="q-card">'
-            f'<div class="q-card-hdr"><span>{blk["label"]}</span><span>Short {short_sum:.1f}{urg_pill}</span></div>'
+            f'<div class="q-card-hdr"><span>{blk["label"]}</span><span>Neg Final {neg_fin_sum:.2f}{urg_pill}</span></div>'
             f'<div class="q-card-sub"><span>Req: <b>{req_sum:.1f}</b></span><span>Bag+Ass: <b>{(bag_sum + ass_sum):.1f}</b></span></div>'
             f'<table class="compact-tbl"><thead>{thead}</thead><tbody>{"".join(body_rows)}{sub_row}</tbody></table>'
             f"</div>"
@@ -717,11 +739,9 @@ if st.session_state.view == "M1, M2, H1 & M3":
     )
 
     if not large_df.empty:
-        large_short_total = sum(
-            float((-large_df[f"{b['code']}_fin"].clip(upper=0.0)).sum()) for b in QUALITY_BLOCKS
-        )
+        large_neg_total = sum(sum_negative(large_df[f"{b['code']}_fin"]) for b in QUALITY_BLOCKS)
         with st.expander(
-            f"▶ Sieves Below 6.5 (7 to 12.5) · {len(large_df)} sizes · Shortage: {large_short_total:.2f} ct",
+            f"▶ Sieves Below 6.5 (7 to 12.5) · {len(large_df)} sizes · Neg Final: {large_neg_total:.2f} ct",
             expanded=False,
         ):
             st.markdown(
@@ -732,12 +752,11 @@ if st.session_state.view == "M1, M2, H1 & M3":
         gt_parts = []
         for blk in QUALITY_BLOCKS:
             q = blk["code"]
-            g_fin = float(df[f"{q}_fin"].fillna(0.0).sum())
-            g_short = round(float((-df[f"{q}_fin"].clip(upper=0.0)).sum()), 2)
-            gt_parts.append(f"<b>{q}</b>: Final {g_fin:+.2f} (Buy {g_short:.2f})")
+            g_neg = sum_negative(df[f"{q}_fin"])
+            gt_parts.append(f'<b>{q}</b>: Neg Final <span class="val-short">{g_neg:.2f}</span>')
         st.markdown(
             f'<div class="q-card-sub" style="border:1.5px solid;border-radius:6px;margin-top:4px;padding:5px 8px;">'
-            f'<span><b>GRAND TOTAL</b></span><span>{" &nbsp;|&nbsp; ".join(gt_parts)}</span></div>',
+            f'<span><b>GRAND TOTAL (NEGATIVE SUM)</b></span><span>{" &nbsp;|&nbsp; ".join(gt_parts)}</span></div>',
             unsafe_allow_html=True,
         )
 
