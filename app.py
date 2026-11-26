@@ -112,7 +112,7 @@ st.set_page_config(
     page_title="Diamond Portal",
     page_icon="💎",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 
@@ -142,8 +142,6 @@ def inject_css(theme_name: str):
 
     st.markdown(
         f"""<style>
-[data-testid="stSidebar"] {{ display: none !important; }}
-[data-testid="collapsedControl"] {{ display: none !important; }}
 header[data-testid="stHeader"] {{ background: transparent !important; height: 2.1rem !important; }}
 [data-testid="stToolbar"] {{ right: 0.5rem !important; }}
 
@@ -151,11 +149,19 @@ header[data-testid="stHeader"] {{ background: transparent !important; height: 2.
     background-color: {t["bg_app"]};
     color: {t["text"]};
 }}
+[data-testid="stSidebar"] {{
+    background-color: {t["card_bg"]} !important;
+    color: {t["text"]} !important;
+    border-right: 1.5px solid {t["border"]} !important;
+}}
+[data-testid="stSidebar"] * {{
+    color: {t["text"]} !important;
+}}
 .block-container {{
-    padding-top: 2.4rem !important;
+    padding-top: 2.3rem !important;
     padding-bottom: 1.2rem !important;
-    padding-left: 0.5rem !important;
-    padding-right: 0.5rem !important;
+    padding-left: 0.55rem !important;
+    padding-right: 0.55rem !important;
     max-width: 100% !important;
 }}
 div[data-testid="stVerticalBlock"] {{
@@ -165,9 +171,8 @@ div[data-testid="stMarkdownContainer"] p {{
     margin-bottom: 0 !important;
 }}
 
-/* Button, Popover & Control contrast in both Light and Dark */
+/* High-contrast buttons in both Light and Dark modes */
 .stButton > button,
-[data-testid="stPopover"] > div > button,
 .stDownloadButton > button {{
     background-color: {t["btn_bg"]} !important;
     color: {t["btn_fg"]} !important;
@@ -175,21 +180,24 @@ div[data-testid="stMarkdownContainer"] p {{
     font-weight: 800 !important;
     font-size: 12px !important;
     min-height: 34px !important;
-    padding: 3px 6px !important;
+    padding: 3px 8px !important;
     border-radius: 6px !important;
     white-space: nowrap !important;
 }}
 .stButton > button *,
-[data-testid="stPopover"] > div > button * {{
+.stButton > button p,
+.stButton > button span,
+.stButton > button div {{
     color: {t["btn_fg"]} !important;
     font-weight: 800 !important;
 }}
-.stButton > button:hover,
-[data-testid="stPopover"] > div > button:hover {{
+.stButton > button:hover {{
     background-color: {t["btn_hover_bg"]} !important;
     color: {t["btn_hover_fg"]} !important;
 }}
-.stButton > button:hover * {{
+.stButton > button:hover *,
+.stButton > button:hover p,
+.stButton > button:hover span {{
     color: {t["btn_hover_fg"]} !important;
 }}
 .stButton > button[kind="primary"] {{
@@ -197,7 +205,9 @@ div[data-testid="stMarkdownContainer"] p {{
     color: {t["pri_fg"]} !important;
     border-color: {t["pri_bg"]} !important;
 }}
-.stButton > button[kind="primary"] * {{
+.stButton > button[kind="primary"] *,
+.stButton > button[kind="primary"] p,
+.stButton > button[kind="primary"] span {{
     color: {t["pri_fg"]} !important;
 }}
 
@@ -232,7 +242,7 @@ div[data-testid="stMarkdownContainer"] p {{
     background: {t["card_bg"]};
     border: 1.5px solid {t["border"]};
     border-radius: 7px;
-    padding: 5px 9px;
+    padding: 5px 10px;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -352,14 +362,6 @@ table.compact-tbl tr.row-subtotal td {{
     font-weight: 900;
     border-top: 1.5px solid {t["hdr_bg"]};
     border-bottom: 1.5px solid {t["hdr_bg"]};
-}}
-table.compact-tbl tfoot td {{
-    background: {t["hdr_bg"]};
-    color: {t["hdr_fg"]};
-    font-size: 11px;
-    font-weight: 900;
-    text-align: left;
-    padding: 3px 6px;
 }}
 .val-short {{
     color: #ef4444 !important;
@@ -555,55 +557,55 @@ if "role" not in st.session_state or st.session_state.role not in ROLE_PERMISSIO
     st.session_state.role = "Guest"
 if "theme" not in st.session_state or st.session_state.theme not in THEMES:
     st.session_state.theme = "Light"
-if "view" not in st.session_state or st.session_state.view not in ("4-Block View", "Final Buying"):
-    st.session_state.view = "4-Block View"
+if "view" not in st.session_state or st.session_state.view not in ("M1, M2, H1 & M3", "Buying"):
+    st.session_state.view = "M1, M2, H1 & M3"
 
-inject_css(st.session_state.theme)
+# --- SIDEBAR ---
+with st.sidebar:
+    st.markdown("### 💎 DIAMOND REQ")
 
-st.markdown(
-    f'<div class="portal-banner"><div><span class="portal-title">💎 DIAMOND PORTAL</span>'
-    f'&nbsp;<span class="role-pill">Role: {st.session_state.role}</span></div>'
-    f'<div style="font-size:11px;font-weight:800;opacity:0.8;">All 4 Blocks Full · Primary Sieves 6(0)–6.5</div></div>',
-    unsafe_allow_html=True,
-)
-
-nav_c1, nav_c2, nav_c3, nav_c4, nav_c5 = st.columns([1.4, 1.4, 1.7, 1.3, 0.8])
-with nav_c1:
     if st.button(
-        "📊 4-Block",
+        "M1, M2, H1 & M3",
         use_container_width=True,
-        type="primary" if st.session_state.view == "4-Block View" else "secondary",
+        type="primary" if st.session_state.view == "M1, M2, H1 & M3" else "secondary",
     ):
-        st.session_state.view = "4-Block View"
+        st.session_state.view = "M1, M2, H1 & M3"
         st.rerun()
-with nav_c2:
+
     if st.button(
-        "🛒 Buying",
+        "Buying",
         use_container_width=True,
-        type="primary" if st.session_state.view == "Final Buying" else "secondary",
+        type="primary" if st.session_state.view == "Buying" else "secondary",
     ):
-        st.session_state.view = "Final Buying"
+        st.session_state.view = "Buying"
         st.rerun()
-with nav_c3:
-    with st.popover(f"🔐 Role: {st.session_state.role}", use_container_width=True):
-        sel_role = st.selectbox(
-            "Role",
-            list(ROLE_PERMISSIONS.keys()),
-            index=list(ROLE_PERMISSIONS.keys()).index(st.session_state.role),
-        )
-        pin_in = st.text_input("PIN", type="password", placeholder="1111 / 2222 / 9999")
-        if st.button("Apply Role", use_container_width=True):
-            if sel_role == "Guest":
-                st.session_state.role = "Guest"
-                st.rerun()
-            elif pin_in.strip() == ROLE_PERMISSIONS[sel_role]["pin"]:
+
+    st.markdown("---")
+    st.markdown("**Role Selector**")
+    sel_role = st.selectbox(
+        "Role",
+        list(ROLE_PERMISSIONS.keys()),
+        index=list(ROLE_PERMISSIONS.keys()).index(st.session_state.role),
+        label_visibility="collapsed",
+    )
+    if sel_role == "Guest":
+        if st.session_state.role != "Guest":
+            st.session_state.role = "Guest"
+            st.rerun()
+    else:
+        pin_in = st.text_input("PIN", type="password", placeholder="Enter PIN")
+        if st.button("Unlock Role", use_container_width=True):
+            if pin_in.strip() == ROLE_PERMISSIONS[sel_role]["pin"]:
                 st.session_state.role = sel_role
+                st.success(f"Active: {sel_role}")
                 st.rerun()
             else:
                 st.error("Invalid PIN")
-with nav_c4:
+
+    st.markdown("---")
+    st.markdown("**Appearance**")
     theme_choice = st.selectbox(
-        "Mode",
+        "Theme",
         ["Light", "Dark"],
         index=["Light", "Dark"].index(st.session_state.theme),
         label_visibility="collapsed",
@@ -611,14 +613,24 @@ with nav_c4:
     if theme_choice != st.session_state.theme:
         st.session_state.theme = theme_choice
         st.rerun()
-with nav_c5:
-    if st.button("🔄", help="Refresh sheet data", use_container_width=True):
+
+    st.markdown("---")
+    if st.button("🔄 Refresh Data", use_container_width=True):
         load_requirement_sheet.clear()
         load_buying_sheet.clear()
         st.rerun()
 
+inject_css(st.session_state.theme)
+
 role = st.session_state.role
 perms = ROLE_PERMISSIONS[role]
+
+st.markdown(
+    f'<div class="portal-banner"><div><span class="portal-title">💎 {st.session_state.view}</span>'
+    f'&nbsp;<span class="role-pill">Role: {role}</span></div>'
+    f'<div style="font-size:11px;font-weight:800;opacity:0.8;">Full 4-Block · Primary Sieves 6(0)–6.5</div></div>',
+    unsafe_allow_html=True,
+)
 
 try:
     df = load_requirement_sheet()
@@ -691,7 +703,7 @@ def build_four_cards_full_html(sub_df: pd.DataFrame, sub_label: str, only_negati
     return f'<div class="four-block-grid">{"".join(cards)}</div>'
 
 
-if st.session_state.view == "4-Block View":
+if st.session_state.view == "M1, M2, H1 & M3":
     _, tog_col = st.columns([3.5, 1.5])
     with tog_col:
         only_short_urg = st.toggle("Only Shortage / URGENT", value=False)
@@ -761,7 +773,7 @@ if st.session_state.view == "4-Block View":
             st.rerun()
 
 
-elif st.session_state.view == "Final Buying":
+elif st.session_state.view == "Buying":
     try:
         df_buy = load_buying_sheet()
     except Exception:
