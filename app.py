@@ -138,7 +138,7 @@ def fmt_num(val, show_zero=True):
 
 
 def inject_css(theme_name: str):
-    t = THEMES[theme_name]
+    t = THEMES.get(theme_name, THEMES["Light"])
 
     st.markdown(
         f"""<style>
@@ -551,11 +551,11 @@ def save_edits_to_sheet(
     return len(batch_updates)
 
 
-if "role" not in st.session_state:
+if "role" not in st.session_state or st.session_state.role not in ROLE_PERMISSIONS:
     st.session_state.role = "Guest"
-if "theme" not in st.session_state:
+if "theme" not in st.session_state or st.session_state.theme not in THEMES:
     st.session_state.theme = "Light"
-if "view" not in st.session_state:
+if "view" not in st.session_state or st.session_state.view not in ("4-Block View", "Final Buying"):
     st.session_state.view = "4-Block View"
 
 inject_css(st.session_state.theme)
