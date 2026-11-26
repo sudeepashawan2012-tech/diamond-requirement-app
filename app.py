@@ -70,18 +70,6 @@ ROLE_PERMISSIONS = {
 }
 
 THEMES = {
-    "Crisp Daylight": {
-        "bg_app": "#eef2f6",
-        "card_bg": "#ffffff",
-        "text": "#0f172a",
-        "border": "#cbd5e1",
-        "hdr_bg": "#0f172a",
-        "hdr_fg": "#ffffff",
-        "sub_bg": "#e2e8f0",
-        "bag_bg": "#f0fdf4",
-        "ass_bg": "#eff6ff",
-        "urg_bg": "#fef2f2",
-    },
     "Midnight Slate": {
         "bg_app": "#0b1120",
         "card_bg": "#111827",
@@ -90,9 +78,35 @@ THEMES = {
         "hdr_bg": "#020617",
         "hdr_fg": "#f8fafc",
         "sub_bg": "#1e293b",
+        "btn_bg": "#1e293b",
+        "btn_fg": "#f8fafc",
+        "btn_hover_bg": "#334155",
+        "btn_hover_fg": "#ffffff",
+        "btn_border": "#475569",
+        "pri_bg": "#2563eb",
+        "pri_fg": "#ffffff",
         "bag_bg": "#052e16",
         "ass_bg": "#172554",
         "urg_bg": "#450a0a",
+    },
+    "Crisp Daylight": {
+        "bg_app": "#eef2f6",
+        "card_bg": "#ffffff",
+        "text": "#0f172a",
+        "border": "#cbd5e1",
+        "hdr_bg": "#0f172a",
+        "hdr_fg": "#ffffff",
+        "sub_bg": "#e2e8f0",
+        "btn_bg": "#ffffff",
+        "btn_fg": "#0f172a",
+        "btn_hover_bg": "#e2e8f0",
+        "btn_hover_fg": "#0f172a",
+        "btn_border": "#94a3b8",
+        "pri_bg": "#1d4ed8",
+        "pri_fg": "#ffffff",
+        "bag_bg": "#f0fdf4",
+        "ass_bg": "#eff6ff",
+        "urg_bg": "#fef2f2",
     },
     "Warm Ivory": {
         "bg_app": "#f7f4ee",
@@ -102,6 +116,13 @@ THEMES = {
         "hdr_bg": "#1c1917",
         "hdr_fg": "#ffffff",
         "sub_bg": "#e7e5e4",
+        "btn_bg": "#ffffff",
+        "btn_fg": "#1c1917",
+        "btn_hover_bg": "#e7e5e4",
+        "btn_hover_fg": "#1c1917",
+        "btn_border": "#a8a29e",
+        "pri_bg": "#b45309",
+        "pri_fg": "#ffffff",
         "bag_bg": "#f0fdf4",
         "ass_bg": "#eff6ff",
         "urg_bg": "#fef2f2",
@@ -137,8 +158,20 @@ def fmt_num(val, show_zero=True):
     return f"{fval:.2f}"
 
 
-def inject_css(theme_name: str):
+def inject_css(theme_name: str, screen_mode: str):
     t = THEMES[theme_name]
+
+    if screen_mode == "4-Col (Wide)":
+        grid_css = "grid-template-columns: repeat(4, minmax(0, 1fr));"
+    elif screen_mode == "2-Col (Tab)":
+        grid_css = "grid-template-columns: repeat(2, minmax(0, 1fr));"
+    else:
+        grid_css = (
+            "grid-template-columns: repeat(4, minmax(0, 1fr));"
+            "@media (max-width: 1180px) { .four-block-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }"
+            "@media (max-width: 600px) { .four-block-grid { grid-template-columns: 1fr; } }"
+        )
+
     st.markdown(
         f"""<style>
 [data-testid="stSidebar"] {{ display: none !important; }}
@@ -151,29 +184,95 @@ header[data-testid="stHeader"] {{ background: transparent !important; height: 2.
     color: {t["text"]};
 }}
 .block-container {{
-    padding-top: 2.6rem !important;
+    padding-top: 2.5rem !important;
     padding-bottom: 1.2rem !important;
-    padding-left: 0.6rem !important;
-    padding-right: 0.6rem !important;
+    padding-left: 0.55rem !important;
+    padding-right: 0.55rem !important;
     max-width: 100% !important;
 }}
 div[data-testid="stVerticalBlock"] {{
-    gap: 0.3rem !important;
+    gap: 0.28rem !important;
 }}
 div[data-testid="stMarkdownContainer"] p {{
     margin-bottom: 0 !important;
+}}
+
+/* High-contrast button & popover styling for both Dark & Light modes */
+.stButton > button,
+[data-testid="stPopover"] > div > button,
+.stDownloadButton > button {{
+    background-color: {t["btn_bg"]} !important;
+    color: {t["btn_fg"]} !important;
+    border: 1.5px solid {t["btn_border"]} !important;
+    font-weight: 800 !important;
+    font-size: 12px !important;
+    min-height: 34px !important;
+    padding: 3px 8px !important;
+    border-radius: 6px !important;
+}}
+.stButton > button *,
+[data-testid="stPopover"] > div > button * {{
+    color: {t["btn_fg"]} !important;
+    font-weight: 800 !important;
+}}
+.stButton > button:hover,
+[data-testid="stPopover"] > div > button:hover {{
+    background-color: {t["btn_hover_bg"]} !important;
+    color: {t["btn_hover_fg"]} !important;
+}}
+.stButton > button:hover * {{
+    color: {t["btn_hover_fg"]} !important;
+}}
+.stButton > button[kind="primary"] {{
+    background-color: {t["pri_bg"]} !important;
+    color: {t["pri_fg"]} !important;
+    border-color: {t["pri_bg"]} !important;
+}}
+.stButton > button[kind="primary"] * {{
+    color: {t["pri_fg"]} !important;
+}}
+.stButton > button:disabled {{
+    opacity: 0.55 !important;
+}}
+
+/* Expander contrast */
+[data-testid="stExpander"] summary,
+[data-testid="stExpander"] summary * {{
+    color: {t["text"]} !important;
+    font-weight: 800 !important;
+}}
+[data-testid="stExpander"] {{
+    background-color: {t["card_bg"]} !important;
+    border: 1.5px solid {t["border"]} !important;
+    border-radius: 7px !important;
+}}
+
+/* Selectbox & toggle labels */
+[data-baseweb="select"] > div {{
+    background-color: {t["btn_bg"]} !important;
+    color: {t["btn_fg"]} !important;
+    border-color: {t["btn_border"]} !important;
+    font-weight: 800 !important;
+}}
+[data-baseweb="select"] span {{
+    color: {t["btn_fg"]} !important;
+}}
+[data-testid="stWidgetLabel"] p,
+.stCheckbox label span {{
+    color: {t["text"]} !important;
+    font-weight: 800 !important;
 }}
 
 .portal-banner {{
     background: {t["card_bg"]};
     border: 1.5px solid {t["border"]};
     border-radius: 7px;
-    padding: 5px 10px;
+    padding: 5px 9px;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: 6px;
 }}
 .portal-title {{
     font-size: 15px;
@@ -190,20 +289,10 @@ div[data-testid="stMarkdownContainer"] p {{
 
 .four-block-grid {{
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    {grid_css}
     gap: 6px;
     width: 100%;
     align-items: start;
-}}
-@media (max-width: 1100px) {{
-    .four-block-grid {{
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }}
-}}
-@media (max-width: 640px) {{
-    .four-block-grid {{
-        grid-template-columns: 1fr;
-    }}
 }}
 
 .q-card {{
@@ -297,11 +386,11 @@ table.compact-tbl tfoot td {{
     padding: 3px 6px;
 }}
 .val-short {{
-    color: #dc2626 !important;
+    color: #ef4444 !important;
     font-weight: 900 !important;
 }}
 .val-surplus {{
-    color: #16a34a !important;
+    color: #22c55e !important;
     font-weight: 900 !important;
 }}
 .urg-tag {{
@@ -580,7 +669,9 @@ def save_edits_to_sheet(
 if "role" not in st.session_state:
     st.session_state.role = "Guest"
 if "theme" not in st.session_state:
-    st.session_state.theme = "Crisp Daylight"
+    st.session_state.theme = "Midnight Slate"
+if "screen" not in st.session_state:
+    st.session_state.screen = "Auto"
 if "view" not in st.session_state:
     st.session_state.view = "4-Block View"
 for _blk in QUALITY_BLOCKS:
@@ -588,19 +679,19 @@ for _blk in QUALITY_BLOCKS:
     if k not in st.session_state:
         st.session_state[k] = False
 
-inject_css(st.session_state.theme)
+inject_css(st.session_state.theme, st.session_state.screen)
 
 st.markdown(
     f'<div class="portal-banner"><div><span class="portal-title">💎 DIAMOND PORTAL</span>'
     f'&nbsp;<span class="role-pill">Role: {st.session_state.role}</span></div>'
-    f'<div style="font-size:11px;font-weight:700;opacity:0.8;">4-Block View · Primary Sieves 6(0)–6.5</div></div>',
+    f'<div style="font-size:11px;font-weight:700;opacity:0.85;">Fold8 Ultra · Tab M10 HD · Desktop · Sieves 6(0)–6.5</div></div>',
     unsafe_allow_html=True,
 )
 
-nav_c1, nav_c2, nav_c3, nav_c4, nav_c5, nav_c6 = st.columns([1.4, 1.3, 1.4, 1.6, 1.3, 0.8])
+nav_c1, nav_c2, nav_c3, nav_c4, nav_c5, nav_c6, nav_c7 = st.columns([1.3, 1.2, 1.3, 1.3, 1.2, 1.2, 0.7])
 with nav_c1:
     if st.button(
-        "📊 4-Block View",
+        "📊 4-Block",
         use_container_width=True,
         type="primary" if st.session_state.view == "4-Block View" else "secondary",
     ):
@@ -608,7 +699,7 @@ with nav_c1:
         st.rerun()
 with nav_c2:
     if st.button(
-        "🛒 Final Buying",
+        "🛒 Buying",
         use_container_width=True,
         type="primary" if st.session_state.view == "Final Buying" else "secondary",
     ):
@@ -640,6 +731,16 @@ with nav_c4:
             else:
                 st.error("Invalid PIN")
 with nav_c5:
+    screen_choice = st.selectbox(
+        "Screen",
+        ["Auto", "2-Col (Tab)", "4-Col (Wide)"],
+        index=["Auto", "2-Col (Tab)", "4-Col (Wide)"].index(st.session_state.screen),
+        label_visibility="collapsed",
+    )
+    if screen_choice != st.session_state.screen:
+        st.session_state.screen = screen_choice
+        st.rerun()
+with nav_c6:
     theme_choice = st.selectbox(
         "Theme",
         list(THEMES.keys()),
@@ -649,7 +750,7 @@ with nav_c5:
     if theme_choice != st.session_state.theme:
         st.session_state.theme = theme_choice
         st.rerun()
-with nav_c6:
+with nav_c7:
     if st.button("🔄", help="Refresh sheet data", use_container_width=True):
         load_requirement_sheet.clear()
         load_buying_sheet.clear()
@@ -918,7 +1019,7 @@ elif st.session_state.view == "Final Buying":
 elif st.session_state.view == "Shortage Log":
     log_c1, log_c2 = st.columns([2, 1])
     with log_c1:
-        st.markdown("**Shortage & Urgency Track Record** — proves which quality, sieve, and date had low Bagging/Assort and high shortage.")
+        st.markdown("**Shortage Log** — date-stamped track record of shortages, `URGENT` flags, `Bagging`, and `Assort` stock.")
     with log_c2:
         if st.button("📸 Capture Live Snapshot Now", use_container_width=True):
             added = append_shortage_snapshot(df, f"Manual:{role}")
@@ -929,7 +1030,7 @@ elif st.session_state.view == "Shortage Log":
     if df_log.empty:
         st.info(
             f"No historical rows in `{LOG_SHEET_NAME}` yet. Click **📸 Capture Live Snapshot Now** "
-            f"(or save edits in **4-Block View**) to start building your date-stamped slowdown evidence log."
+            f"(or save edits in **4-Block View**) to record date-stamped shortage history."
         )
     else:
         f1, f2, f3 = st.columns(3)
