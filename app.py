@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 import gspread
 from google.oauth2.service_account import Credentials
 import pandas as pd
@@ -72,6 +73,7 @@ THEMES = {
         "bg_app": "#eef2f6",
         "card_bg": "#ffffff",
         "text": "#0f172a",
+        "muted": "#475569",
         "border": "#94a3b8",
         "hdr_bg": "#0f172a",
         "hdr_fg": "#ffffff",
@@ -86,11 +88,14 @@ THEMES = {
         "bag_bg": "#f0fdf4",
         "ass_bg": "#eff6ff",
         "urg_bg": "#fef2f2",
+        "input_bg": "#ffffff",
+        "input_fg": "#0f172a",
     },
     "Dark": {
         "bg_app": "#0b1120",
         "card_bg": "#111827",
         "text": "#f8fafc",
+        "muted": "#cbd5e1",
         "border": "#475569",
         "hdr_bg": "#020617",
         "hdr_fg": "#f8fafc",
@@ -99,12 +104,14 @@ THEMES = {
         "btn_fg": "#f8fafc",
         "btn_hover_bg": "#334155",
         "btn_hover_fg": "#ffffff",
-        "btn_border": "#64748b",
+        "btn_border": "#94a3b8",
         "pri_bg": "#2563eb",
         "pri_fg": "#ffffff",
         "bag_bg": "#052e16",
         "ass_bg": "#172554",
         "urg_bg": "#450a0a",
+        "input_bg": "#1e293b",
+        "input_fg": "#f8fafc",
     },
 }
 
@@ -141,13 +148,22 @@ def sum_negative(series: pd.Series) -> float:
     return round(float(series.fillna(0.0).clip(upper=0.0).sum()), 2)
 
 
+def sum_positive(series: pd.Series) -> float:
+    return round(float(series.fillna(0.0).clip(lower=0.0).sum()), 2)
+
+
 def inject_css(theme_name: str):
     t = THEMES.get(theme_name, THEMES["Light"])
 
     st.markdown(
         f"""<style>
-header[data-testid="stHeader"] {{ background: transparent !important; height: 2.1rem !important; }}
-[data-testid="stToolbar"] {{ right: 0.5rem !important; }}
+header[data-testid="stHeader"] {{
+    background: transparent !important;
+    height: 2.8rem !important;
+}}
+[data-testid="stToolbar"] {{
+    right: 0.5rem !important;
+}}
 
 .stApp,
 [data-testid="stAppViewContainer"],
@@ -157,48 +173,136 @@ header[data-testid="stHeader"] {{ background: transparent !important; height: 2.
     width: 100% !important;
     max-width: 100% !important;
 }}
+[data-testid="stMain"] {{
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}}
 [data-testid="stMainBlockContainer"],
 .block-container {{
-    padding-top: 2.3rem !important;
+    padding-top: 2.9rem !important;
     padding-bottom: 1.2rem !important;
-    padding-left: 0.5rem !important;
-    padding-right: 0.5rem !important;
+    padding-left: 0.6rem !important;
+    padding-right: 0.6rem !important;
     width: 100% !important;
     max-width: 100% !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
 }}
-[data-testid="stSidebar"] {{
+
+/* Sidebar expanded vs collapsed — eliminates blank left gap on collapse */
+section[data-testid="stSidebar"] {{
     background-color: {t["card_bg"]} !important;
     color: {t["text"]} !important;
+}}
+section[data-testid="stSidebar"][aria-expanded="true"] {{
+    min-width: 245px !important;
+    max-width: 265px !important;
     border-right: 1.5px solid {t["border"]} !important;
-    min-width: 225px !important;
+}}
+section[data-testid="stSidebar"][aria-expanded="false"] {{
+    min-width: 0px !important;
+    width: 0px !important;
+    max-width: 0px !important;
+    border-right: none !important;
+    overflow: hidden !important;
+}}
+
+/* Bigger, high-contrast sidebar expand & collapse arrow buttons */
+[data-testid="stExpandSidebarButton"],
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapseButton"] {{
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 9999 !important;
+}}
+[data-testid="stExpandSidebarButton"] button,
+[data-testid="collapsedControl"] button,
+[data-testid="stSidebarCollapsedControl"] button,
+[data-testid="stSidebarCollapseButton"] button {{
+    background-color: {t["pri_bg"]} !important;
+    color: {t["pri_fg"]} !important;
+    border: 2px solid {t["pri_fg"]} !important;
+    border-radius: 8px !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35) !important;
+    opacity: 1 !important;
+}}
+[data-testid="stExpandSidebarButton"] button:hover,
+[data-testid="collapsedControl"] button:hover,
+[data-testid="stSidebarCollapsedControl"] button:hover,
+[data-testid="stSidebarCollapseButton"] button:hover {{
+    filter: brightness(1.15) !important;
+}}
+[data-testid="stExpandSidebarButton"] button svg,
+[data-testid="collapsedControl"] button svg,
+[data-testid="stSidebarCollapsedControl"] button svg,
+[data-testid="stSidebarCollapseButton"] button svg {{
+    width: 22px !important;
+    height: 22px !important;
+    fill: {t["pri_fg"]} !important;
+    stroke: {t["pri_fg"]} !important;
+    color: {t["pri_fg"]} !important;
+}}
+[data-testid="stExpandSidebarButton"] button span,
+[data-testid="collapsedControl"] button span,
+[data-testid="stSidebarCollapsedControl"] button span,
+[data-testid="stSidebarCollapseButton"] button span {{
+    font-size: 24px !important;
+    font-weight: 900 !important;
+    color: {t["pri_fg"]} !important;
+    line-height: 1 !important;
+}}
+
+/* Clean sidebar spacing and typography */
+[data-testid="stSidebar"] > div:first-child {{
+    padding-top: 0.75rem !important;
+}}
+[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {{
+    padding: 0.5rem 0.9rem 1.2rem 0.9rem !important;
 }}
 [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {{
-    gap: 0.55rem !important;
-}}
-[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {{
-    padding-top: 2px !important;
-    padding-bottom: 2px !important;
+    gap: 0.65rem !important;
 }}
 [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
 [data-testid="stSidebar"] label p {{
     color: {t["text"]} !important;
-    line-height: 1.35 !important;
+    line-height: 1.4 !important;
     margin: 0 !important;
     overflow: visible !important;
 }}
-[data-testid="stSidebar"] [data-testid="stWidgetLabel"] {{
-    min-height: 20px !important;
-    margin-bottom: 4px !important;
-}}
 [data-testid="stSidebar"] hr {{
-    margin: 6px 0 !important;
+    margin: 10px 0 !important;
     border-color: {t["border"]} !important;
+}}
+.sb-brand {{
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.4px;
+    color: {t["text"]};
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+}}
+.sb-section-title {{
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: {t["muted"]};
+    margin-top: 4px;
+    margin-bottom: 2px;
+    display: block;
 }}
 
 .block-container div[data-testid="stVerticalBlock"] {{
-    gap: 0.25rem !important;
+    gap: 0.3rem !important;
 }}
 .block-container div[data-testid="stMarkdownContainer"] {{
     width: 100% !important;
@@ -208,16 +312,17 @@ header[data-testid="stHeader"] {{ background: transparent !important; height: 2.
     margin-bottom: 0 !important;
 }}
 
+/* Buttons */
 .stButton > button,
 .stDownloadButton > button {{
     background-color: {t["btn_bg"]} !important;
     color: {t["btn_fg"]} !important;
     border: 1.5px solid {t["btn_border"]} !important;
     font-weight: 800 !important;
-    font-size: 12px !important;
-    min-height: 36px !important;
-    padding: 4px 8px !important;
-    border-radius: 6px !important;
+    font-size: 12.5px !important;
+    min-height: 38px !important;
+    padding: 5px 10px !important;
+    border-radius: 7px !important;
     white-space: nowrap !important;
 }}
 .stButton > button *,
@@ -247,6 +352,26 @@ header[data-testid="stHeader"] {{ background: transparent !important; height: 2.
     color: {t["pri_fg"]} !important;
 }}
 
+/* Inputs & Selectboxes in both themes */
+[data-baseweb="select"] > div {{
+    background-color: {t["input_bg"]} !important;
+    color: {t["input_fg"]} !important;
+    border-color: {t["btn_border"]} !important;
+    font-weight: 800 !important;
+    min-height: 38px !important;
+}}
+[data-baseweb="select"] span,
+[data-baseweb="select"] svg {{
+    color: {t["input_fg"]} !important;
+    fill: {t["input_fg"]} !important;
+}}
+[data-testid="stTextInput"] input {{
+    background-color: {t["input_bg"]} !important;
+    color: {t["input_fg"]} !important;
+    border: 1.5px solid {t["btn_border"]} !important;
+    font-weight: 700 !important;
+}}
+
 [data-testid="stExpander"] summary,
 [data-testid="stExpander"] summary * {{
     color: {t["text"]} !important;
@@ -258,27 +383,11 @@ header[data-testid="stHeader"] {{ background: transparent !important; height: 2.
     border-radius: 7px !important;
 }}
 
-[data-baseweb="select"] > div {{
-    background-color: {t["btn_bg"]} !important;
-    color: {t["btn_fg"]} !important;
-    border-color: {t["btn_border"]} !important;
-    font-weight: 800 !important;
-    min-height: 36px !important;
-}}
-[data-baseweb="select"] span {{
-    color: {t["btn_fg"]} !important;
-}}
-[data-testid="stWidgetLabel"] p,
-.stCheckbox label span {{
-    color: {t["text"]} !important;
-    font-weight: 800 !important;
-}}
-
 .portal-banner {{
     background: {t["card_bg"]};
     border: 1.5px solid {t["border"]};
     border-radius: 7px;
-    padding: 5px 10px;
+    padding: 6px 12px;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -304,7 +413,7 @@ header[data-testid="stHeader"] {{ background: transparent !important; height: 2.
 .four-block-grid {{
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 5px;
+    gap: 6px;
     width: 100%;
     max-width: 100%;
     align-items: start;
@@ -600,16 +709,22 @@ def save_edits_to_sheet(
     return len(batch_updates)
 
 
+# --- SESSION STATE DEFAULTS ---
 if "role" not in st.session_state or st.session_state.role not in ROLE_PERMISSIONS:
     st.session_state.role = "Guest"
 if "theme" not in st.session_state or st.session_state.theme not in THEMES:
     st.session_state.theme = "Light"
 if "view" not in st.session_state or st.session_state.view not in ("M1, M2, H1 & M3", "Buying"):
     st.session_state.view = "M1, M2, H1 & M3"
+if "filter_mode" not in st.session_state or st.session_state.filter_mode not in ("All", "Shortage", "Excess"):
+    st.session_state.filter_mode = "All"
+if "refresh_notice" not in st.session_state:
+    st.session_state.refresh_notice = ""
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.markdown("#### 💎 DIAMOND REQ")
+    st.markdown('<div class="sb-brand">💎 DIAMOND REQ</div>', unsafe_allow_html=True)
+    st.markdown('<span class="sb-section-title">Views</span>', unsafe_allow_html=True)
 
     if st.button(
         "M1, M2, H1 & M3",
@@ -628,7 +743,7 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
-    st.markdown("**Role Selector**")
+    st.markdown('<span class="sb-section-title">Role Selector</span>', unsafe_allow_html=True)
     sel_role = st.selectbox(
         "Select Role",
         list(ROLE_PERMISSIONS.keys()),
@@ -641,7 +756,7 @@ with st.sidebar:
             st.rerun()
     else:
         pin_in = st.text_input("PIN", type="password", placeholder="Enter PIN")
-        if st.button("Unlock Role", use_container_width=True):
+        if st.button("🔓 Unlock Role", use_container_width=True):
             if pin_in.strip() == ROLE_PERMISSIONS[sel_role]["pin"]:
                 st.session_state.role = sel_role
                 st.success(f"Active: {sel_role}")
@@ -650,7 +765,7 @@ with st.sidebar:
                 st.error("Invalid PIN")
 
     st.markdown("---")
-    st.markdown("**Appearance**")
+    st.markdown('<span class="sb-section-title">Appearance</span>', unsafe_allow_html=True)
     theme_choice = st.selectbox(
         "Select Theme",
         ["Light", "Dark"],
@@ -662,20 +777,37 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
+    st.markdown('<span class="sb-section-title">Data Sync</span>', unsafe_allow_html=True)
     if st.button("🔄 Refresh Data", use_container_width=True):
         load_requirement_sheet.clear()
         load_buying_sheet.clear()
+        ist_now = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%I:%M:%S %p")
+        st.session_state.refresh_notice = f"Data refreshed from Google Sheets at {ist_now}"
         st.rerun()
+
+    if st.session_state.refresh_notice:
+        st.success(f"✅ {st.session_state.refresh_notice}")
 
 inject_css(st.session_state.theme)
 
+if st.session_state.refresh_notice:
+    st.toast(f"✅ {st.session_state.refresh_notice}", icon="🔄")
+    st.session_state.refresh_notice = ""
+
 role = st.session_state.role
 perms = ROLE_PERMISSIONS[role]
+filter_mode = st.session_state.filter_mode
+
+banner_note = (
+    "Final Req Sum = Positive Only (Excess)"
+    if (st.session_state.view == "M1, M2, H1 & M3" and filter_mode == "Excess")
+    else "Final Req Sum = Negative Only"
+)
 
 st.markdown(
     f'<div class="portal-banner"><div><span class="portal-title">💎 {st.session_state.view}</span>'
     f'&nbsp;<span class="role-pill">Role: {role}</span></div>'
-    f'<div style="font-size:11px;font-weight:800;opacity:0.8;">Final Req Sum = Negative Only · Primary Sieves 6(0)–6.5</div></div>',
+    f'<div style="font-size:11px;font-weight:800;opacity:0.85;">{banner_note} · Primary Sieves 6(0)–6.5</div></div>',
     unsafe_allow_html=True,
 )
 
@@ -686,28 +818,46 @@ except Exception as e:
     st.stop()
 
 
-def build_four_cards_full_html(sub_df: pd.DataFrame, sub_label: str, only_negative_red: bool = False) -> str:
+def build_four_cards_full_html(sub_df: pd.DataFrame, sub_label: str, mode: str = "All") -> str:
     cards = []
     for blk in QUALITY_BLOCKS:
         q = blk["code"]
-        req_sum = round(float(sub_df[f"{q}_req"].fillna(0.0).sum()), 2)
-        bag_sum = round(float(sub_df[f"{q}_bag"].fillna(0.0).sum()), 2)
-        ass_sum = round(float(sub_df[f"{q}_ass"].fillna(0.0).sum()), 2)
-        neg_fin_sum = sum_negative(sub_df[f"{q}_fin"])
-        urg_cnt = int((sub_df[f"{q}_urg"].fillna("") != "").sum())
-        neg_fin_cls = "val-short" if neg_fin_sum < -0.001 else ""
+
+        # Filter rows for this quality block based on mode
+        visible_rows = []
+        for _, r in sub_df.iterrows():
+            fin = float(r[f"{q}_fin"] or 0.0)
+            urg = str(r[f"{q}_urg"] or "").strip()
+            if mode == "Shortage" and not (fin < -0.001 or urg != ""):
+                continue
+            if mode == "Excess" and not (fin > 0.001):
+                continue
+            visible_rows.append(r)
+
+        vis_df = pd.DataFrame(visible_rows) if visible_rows else sub_df.iloc[0:0]
+        req_sum = round(float(vis_df[f"{q}_req"].fillna(0.0).sum()), 2) if not vis_df.empty else 0.0
+        bag_sum = round(float(vis_df[f"{q}_bag"].fillna(0.0).sum()), 2) if not vis_df.empty else 0.0
+        ass_sum = round(float(vis_df[f"{q}_ass"].fillna(0.0).sum()), 2) if not vis_df.empty else 0.0
+
+        if mode == "Excess":
+            fin_sum = sum_positive(sub_df[f"{q}_fin"])
+            fin_sum_cls = "val-surplus" if fin_sum > 0.001 else ""
+            hdr_sum_html = f'<span style="color:#4ade80;">Pos Final +{fin_sum:.2f}</span>'
+        else:
+            fin_sum = sum_negative(sub_df[f"{q}_fin"])
+            fin_sum_cls = "val-short" if fin_sum < -0.001 else ""
+            urg_cnt = int((sub_df[f"{q}_urg"].fillna("") != "").sum())
+            urg_pill = f' · <span style="color:#fca5a5;">{urg_cnt} URG</span>' if urg_cnt > 0 else ""
+            hdr_sum_html = f'<span>Neg Final {fin_sum:.2f}{urg_pill}</span>'
 
         body_rows = []
-        for _, r in sub_df.iterrows():
+        for r in visible_rows:
             sieve = r["Sieve"]
             req = float(r[f"{q}_req"] or 0.0)
             bag_raw = r[f"{q}_bag"]
             ass_raw = r[f"{q}_ass"]
             fin = float(r[f"{q}_fin"] or 0.0)
             urg = str(r[f"{q}_urg"] or "").strip()
-
-            if only_negative_red and not (fin < -0.001 or urg != ""):
-                continue
 
             fin_cls = "val-short" if fin < -0.001 else ("val-surplus" if fin > 0.001 else "")
             tr_cls = ' class="row-urgent"' if urg else ""
@@ -724,23 +874,26 @@ def build_four_cards_full_html(sub_df: pd.DataFrame, sub_label: str, only_negati
             )
 
         if not body_rows:
-            body_rows.append('<tr><td colspan="5" style="text-align:center;opacity:0.65;">No negative shortage</td></tr>')
+            empty_msg = "No excess stock" if mode == "Excess" else "No negative shortage"
+            body_rows.append(
+                f'<tr><td colspan="5" style="text-align:center;opacity:0.65;">{empty_msg}</td></tr>'
+            )
 
         thead = "<tr><th>SIEVE</th><th>REQ</th><th>BAG</th><th>ASS</th><th>FINAL</th></tr>"
+        fin_sum_disp = f"+{fin_sum:.2f}" if (mode == "Excess" and fin_sum > 0.001) else f"{fin_sum:.2f}"
         sub_row = (
             f'<tr class="row-subtotal">'
             f"<td>{sub_label}</td>"
             f"<td>{req_sum:.2f}</td>"
             f'<td class="cell-bag">{bag_sum:.2f}</td>'
             f'<td class="cell-ass">{ass_sum:.2f}</td>'
-            f'<td class="{neg_fin_cls}">{neg_fin_sum:.2f}</td>'
+            f'<td class="{fin_sum_cls}">{fin_sum_disp}</td>'
             f"</tr>"
         )
-        urg_pill = f' · <span style="color:#fca5a5;">{urg_cnt} URG</span>' if urg_cnt > 0 else ""
 
         cards.append(
             f'<div class="q-card">'
-            f'<div class="q-card-hdr"><span>{blk["label"]}</span><span>Neg Final {neg_fin_sum:.2f}{urg_pill}</span></div>'
+            f'<div class="q-card-hdr"><span>{blk["label"]}</span>{hdr_sum_html}</div>'
             f'<div class="q-card-sub"><span>Req: <b>{req_sum:.1f}</b></span><span>Bag+Ass: <b>{(bag_sum + ass_sum):.1f}</b></span></div>'
             f'<table class="compact-tbl"><thead>{thead}</thead><tbody>{"".join(body_rows)}{sub_row}</tbody></table>'
             f"</div>"
@@ -750,37 +903,72 @@ def build_four_cards_full_html(sub_df: pd.DataFrame, sub_label: str, only_negati
 
 
 if st.session_state.view == "M1, M2, H1 & M3":
-    _, tog_col = st.columns([3.5, 1.5])
-    with tog_col:
-        only_short_urg = st.toggle("Only Shortage / URGENT", value=False)
+    # Two-sided filter switch: Shortage <-> All <-> Excess (clearly visible in Light & Dark modes)
+    f_col1, f_col2, f_col3 = st.columns(3)
+    with f_col1:
+        if st.button(
+            "🔴 Shortage / URG",
+            use_container_width=True,
+            type="primary" if filter_mode == "Shortage" else "secondary",
+        ):
+            st.session_state.filter_mode = "Shortage"
+            st.rerun()
+    with f_col2:
+        if st.button(
+            "📋 All Sizes",
+            use_container_width=True,
+            type="primary" if filter_mode == "All" else "secondary",
+        ):
+            st.session_state.filter_mode = "All"
+            st.rerun()
+    with f_col3:
+        if st.button(
+            "🟢 Excess Only",
+            use_container_width=True,
+            type="primary" if filter_mode == "Excess" else "secondary",
+        ):
+            st.session_state.filter_mode = "Excess"
+            st.rerun()
 
     primary_df = df[df["Tier"] == "Primary"]
     large_df = df[df["Tier"] == "Large"]
 
     st.markdown(
-        build_four_cards_full_html(primary_df, "SUB (6–6.5)", only_negative_red=only_short_urg),
+        build_four_cards_full_html(primary_df, "SUB (6–6.5)", mode=filter_mode),
         unsafe_allow_html=True,
     )
 
     if not large_df.empty:
-        large_neg_total = sum(sum_negative(large_df[f"{b['code']}_fin"]) for b in QUALITY_BLOCKS)
-        with st.expander(
-            f"▶ Sieves Below 6.5 (7 to 12.5) · {len(large_df)} sizes · Neg Final: {large_neg_total:.2f} ct",
-            expanded=False,
-        ):
+        if filter_mode == "Excess":
+            large_total = sum(sum_positive(large_df[f"{b['code']}_fin"]) for b in QUALITY_BLOCKS)
+            exp_label = f"▶ Sieves Below 6.5 (7 to 12.5) · {len(large_df)} sizes · Pos Final: +{large_total:.2f} ct"
+        else:
+            large_total = sum(sum_negative(large_df[f"{b['code']}_fin"]) for b in QUALITY_BLOCKS)
+            exp_label = f"▶ Sieves Below 6.5 (7 to 12.5) · {len(large_df)} sizes · Neg Final: {large_total:.2f} ct"
+
+        with st.expander(exp_label, expanded=False):
             st.markdown(
-                build_four_cards_full_html(large_df, "SUB (7–12.5)", only_negative_red=only_short_urg),
+                build_four_cards_full_html(large_df, "SUB (7–12.5)", mode=filter_mode),
                 unsafe_allow_html=True,
             )
 
         gt_parts = []
-        for blk in QUALITY_BLOCKS:
-            q = blk["code"]
-            g_neg = sum_negative(df[f"{q}_fin"])
-            gt_parts.append(f'<b>{q}</b>: Neg Final <span class="val-short">{g_neg:.2f}</span>')
+        if filter_mode == "Excess":
+            gt_title = "GRAND TOTAL (POSITIVE / EXCESS SUM)"
+            for blk in QUALITY_BLOCKS:
+                q = blk["code"]
+                g_pos = sum_positive(df[f"{q}_fin"])
+                gt_parts.append(f'<b>{q}</b>: Pos Final <span class="val-surplus">+{g_pos:.2f}</span>')
+        else:
+            gt_title = "GRAND TOTAL (NEGATIVE SUM)"
+            for blk in QUALITY_BLOCKS:
+                q = blk["code"]
+                g_neg = sum_negative(df[f"{q}_fin"])
+                gt_parts.append(f'<b>{q}</b>: Neg Final <span class="val-short">{g_neg:.2f}</span>')
+
         st.markdown(
             f'<div class="q-card-sub" style="border:1.5px solid;border-radius:6px;margin-top:4px;padding:5px 8px;">'
-            f'<span><b>GRAND TOTAL (NEGATIVE SUM)</b></span><span>{" &nbsp;|&nbsp; ".join(gt_parts)}</span></div>',
+            f'<span><b>{gt_title}</b></span><span>{" &nbsp;|&nbsp; ".join(gt_parts)}</span></div>',
             unsafe_allow_html=True,
         )
 
