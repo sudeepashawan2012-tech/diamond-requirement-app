@@ -79,23 +79,23 @@ THEMES = {
         "card_bg": "#ffffff",
         "card_shadow": "0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.03)",
         "text": "#111827",
-        "muted": "#6b7280",
-        "border": "#e2e6ec",
-        "border_soft": "#eef1f5",
+        "muted": "#4b5563",
+        "border": "#d5dbe3",
+        "border_soft": "#e8ecf2",
         "hdr_bg": "#f9fafb",
         "hdr_fg": "#111827",
-        "sub_bg": "#f3f4f6",
+        "sub_bg": "#f1f4f8",
         "row_hover": "#f8fafc",
         "accent": "#111827",
         "accent_soft": "#eef2ff",
         "accent_fg": "#ffffff",
         "btn_bg": "#f8fafc",
-        "btn_fg": "#374151",
+        "btn_fg": "#1f2937",
         "btn_hover": "#eef2f6",
-        "bag_bg": "rgba(16, 185, 129, 0.06)",
-        "ass_bg": "rgba(59, 130, 246, 0.06)",
-        "urg_bg": "rgba(239, 68, 68, 0.07)",
-        "urg_pill_bg": "rgba(220, 38, 38, 0.12)",
+        "bag_bg": "rgba(16, 185, 129, 0.07)",
+        "ass_bg": "rgba(59, 130, 246, 0.07)",
+        "urg_bg": "rgba(239, 68, 68, 0.08)",
+        "urg_pill_bg": "rgba(220, 38, 38, 0.14)",
         "urg_pill_fg": "#b91c1c",
         "input_bg": "#ffffff",
         "input_fg": "#111827",
@@ -108,23 +108,23 @@ THEMES = {
         "card_bg": "#ffffff",
         "card_shadow": "0 2px 10px rgba(15, 23, 42, 0.05)",
         "text": "#0f172a",
-        "muted": "#64748b",
-        "border": "#d6dde8",
-        "border_soft": "#e8edf4",
+        "muted": "#475569",
+        "border": "#cfd8e3",
+        "border_soft": "#e5ebf2",
         "hdr_bg": "#f1f5f9",
         "hdr_fg": "#0f172a",
-        "sub_bg": "#f8fafc",
+        "sub_bg": "#f1f5f9",
         "row_hover": "#f1f5f9",
         "accent": "#2563eb",
         "accent_soft": "#eff6ff",
         "accent_fg": "#ffffff",
         "btn_bg": "#ffffff",
-        "btn_fg": "#334155",
+        "btn_fg": "#1e293b",
         "btn_hover": "#e2e8f0",
-        "bag_bg": "rgba(16, 185, 129, 0.07)",
-        "ass_bg": "rgba(37, 99, 235, 0.06)",
-        "urg_bg": "rgba(239, 68, 68, 0.07)",
-        "urg_pill_bg": "rgba(220, 38, 38, 0.12)",
+        "bag_bg": "rgba(16, 185, 129, 0.08)",
+        "ass_bg": "rgba(37, 99, 235, 0.07)",
+        "urg_bg": "rgba(239, 68, 68, 0.08)",
+        "urg_pill_bg": "rgba(220, 38, 38, 0.14)",
         "urg_pill_fg": "#b91c1c",
         "input_bg": "#ffffff",
         "input_fg": "#0f172a",
@@ -136,24 +136,24 @@ THEMES = {
         "sidebar_bg": "#11141c",
         "card_bg": "#141821",
         "card_shadow": "0 4px 18px rgba(0, 0, 0, 0.45)",
-        "text": "#f3f4f6",
-        "muted": "#9ca3af",
-        "border": "#252b3b",
-        "border_soft": "#1d2230",
+        "text": "#f9fafb",
+        "muted": "#cbd5e1",
+        "border": "#283042",
+        "border_soft": "#1f2535",
         "hdr_bg": "#191e2a",
-        "hdr_fg": "#f9fafb",
-        "sub_bg": "#1a202d",
-        "row_hover": "#1d2433",
+        "hdr_fg": "#ffffff",
+        "sub_bg": "#1b2130",
+        "row_hover": "#1e2636",
         "accent": "#d4af37",
-        "accent_soft": "rgba(212, 175, 55, 0.14)",
+        "accent_soft": "rgba(212, 175, 55, 0.15)",
         "accent_fg": "#0b0d12",
         "btn_bg": "#191e2a",
-        "btn_fg": "#e5e7eb",
+        "btn_fg": "#f3f4f6",
         "btn_hover": "#232a3a",
-        "bag_bg": "rgba(16, 185, 129, 0.09)",
-        "ass_bg": "rgba(96, 165, 250, 0.09)",
-        "urg_bg": "rgba(248, 113, 113, 0.11)",
-        "urg_pill_bg": "rgba(248, 113, 113, 0.18)",
+        "bag_bg": "rgba(16, 185, 129, 0.10)",
+        "ass_bg": "rgba(96, 165, 250, 0.10)",
+        "urg_bg": "rgba(248, 113, 113, 0.12)",
+        "urg_pill_bg": "rgba(248, 113, 113, 0.20)",
         "urg_pill_fg": "#fca5a5",
         "input_bg": "#191e2a",
         "input_fg": "#f9fafb",
@@ -165,24 +165,24 @@ THEMES = {
         "sidebar_bg": "#0c1220",
         "card_bg": "#0f172a",
         "card_shadow": "0 4px 18px rgba(0, 0, 0, 0.5)",
-        "text": "#f1f5f9",
-        "muted": "#94a3b8",
-        "border": "#1e293b",
-        "border_soft": "#162033",
+        "text": "#f8fafc",
+        "muted": "#cbd5e1",
+        "border": "#24324a",
+        "border_soft": "#192438",
         "hdr_bg": "#141f35",
-        "hdr_fg": "#f8fafc",
-        "sub_bg": "#152238",
-        "row_hover": "#192842",
+        "hdr_fg": "#ffffff",
+        "sub_bg": "#16243b",
+        "row_hover": "#1a2a46",
         "accent": "#38bdf8",
-        "accent_soft": "rgba(56, 189, 248, 0.14)",
+        "accent_soft": "rgba(56, 189, 248, 0.15)",
         "accent_fg": "#070b14",
         "btn_bg": "#141f35",
-        "btn_fg": "#e2e8f0",
+        "btn_fg": "#f1f5f9",
         "btn_hover": "#1e2d4a",
-        "bag_bg": "rgba(52, 211, 153, 0.08)",
-        "ass_bg": "rgba(56, 189, 248, 0.08)",
-        "urg_bg": "rgba(248, 113, 113, 0.12)",
-        "urg_pill_bg": "rgba(248, 113, 113, 0.18)",
+        "bag_bg": "rgba(52, 211, 153, 0.09)",
+        "ass_bg": "rgba(56, 189, 248, 0.09)",
+        "urg_bg": "rgba(248, 113, 113, 0.13)",
+        "urg_pill_bg": "rgba(248, 113, 113, 0.20)",
         "urg_pill_fg": "#fca5a5",
         "input_bg": "#141f35",
         "input_fg": "#f8fafc",
@@ -245,10 +245,11 @@ def inject_css(theme_name: str, filter_mode: str):
 
     st.markdown(
         f"""<style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
 
 html, body, [class*="css"] {{
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-weight: 700;
 }}
 
 header[data-testid="stHeader"] {{
@@ -275,8 +276,8 @@ header[data-testid="stHeader"] {{
 .block-container {{
     padding-top: 2.65rem !important;
     padding-bottom: 3.8rem !important;
-    padding-left: 0.75rem !important;
-    padding-right: 0.75rem !important;
+    padding-left: 0.65rem !important;
+    padding-right: 0.65rem !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
@@ -363,37 +364,37 @@ button[data-testid="stExpandSidebarButton"] *,
     margin-bottom: 6px;
 }}
 .sb-brand-text {{
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 800;
-    letter-spacing: 0.9px;
+    letter-spacing: 0.8px;
     color: {t["text"]};
 }}
 .sb-label {{
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.9px;
     color: {t["muted"]};
     padding: 12px 2px 4px 2px;
     line-height: 1.4;
     display: block;
 }}
 .sb-meta {{
-    font-size: 10.5px;
-    font-weight: 600;
+    font-size: 11.5px;
+    font-weight: 700;
     color: {t["muted"]};
     padding: 4px 2px;
 }}
 
-/* Slim, Minimal Sidebar Buttons (No Bulky Boxes) */
+/* Slim, Bold Sidebar Buttons */
 [data-testid="stSidebar"] .stButton > button {{
     background-color: {t["btn_bg"]} !important;
     color: {t["btn_fg"]} !important;
     border: 1px solid {t["border"]} !important;
-    font-weight: 600 !important;
-    font-size: 11.5px !important;
-    min-height: 28px !important;
-    height: 30px !important;
+    font-weight: 700 !important;
+    font-size: 12.5px !important;
+    min-height: 29px !important;
+    height: 31px !important;
     padding: 0 10px !important;
     border-radius: 7px !important;
     box-shadow: none !important;
@@ -402,8 +403,8 @@ button[data-testid="stExpandSidebarButton"] *,
 [data-testid="stSidebar"] .stButton > button *,
 [data-testid="stSidebar"] .stButton > button p {{
     color: {t["btn_fg"]} !important;
-    font-size: 11.5px !important;
-    font-weight: 600 !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
     line-height: 1 !important;
 }}
 [data-testid="stSidebar"] .stButton > button:hover {{
@@ -418,14 +419,14 @@ button[data-testid="stExpandSidebarButton"] *,
 [data-testid="stSidebar"] .stButton > button[kind="primary"] *,
 [data-testid="stSidebar"] .stButton > button[kind="primary"] p {{
     color: {t["accent_fg"]} !important;
-    font-weight: 700 !important;
+    font-weight: 800 !important;
 }}
 
 /* Navigation links in sidebar — left-aligned minimalist style */
 .st-key-sb_nav .stButton > button {{
     justify-content: flex-start !important;
     padding-left: 11px !important;
-    height: 32px !important;
+    height: 33px !important;
     border-color: transparent !important;
     background-color: transparent !important;
 }}
@@ -461,9 +462,9 @@ button[data-testid="stExpandSidebarButton"] *,
     color: {t["input_fg"]} !important;
     border: 1px solid {t["border"]} !important;
     border-radius: 7px !important;
-    height: 30px !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
+    height: 32px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
 }}
 
 /* Main Page Spacing */
@@ -500,22 +501,22 @@ button[data-testid="stExpandSidebarButton"] *,
     flex-wrap: wrap;
 }}
 .brand-name {{
-    font-size: 15px;
+    font-size: 16.5px;
     font-weight: 800;
     letter-spacing: 0.4px;
     color: {t["text"]};
 }}
 .brand-sep {{
     color: {t["border"]};
-    font-weight: 600;
+    font-weight: 700;
 }}
 .view-tag {{
-    font-size: 12.5px;
-    font-weight: 700;
+    font-size: 13.5px;
+    font-weight: 800;
     color: {t["muted"]};
 }}
 .role-chip {{
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.7px;
@@ -526,8 +527,8 @@ button[data-testid="stExpandSidebarButton"] *,
     border: 1px solid {t["border"]};
 }}
 .mode-note {{
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 700;
     color: {t["muted"]};
 }}
 
@@ -580,7 +581,7 @@ button[data-testid="stExpandSidebarButton"] *,
     transform: scale(1.1) !important;
 }}
 .st-key-filter_pod .stButton > button p {{
-    font-size: 12px !important;
+    font-size: 13px !important;
     font-weight: 800 !important;
     line-height: 1 !important;
     margin: 0 !important;
@@ -614,10 +615,10 @@ button[data-testid="stExpandSidebarButton"] *,
 }}
 
 .dot-lbl {{
-    font-size: 9.5px;
-    font-weight: 700;
+    font-size: 10.5px;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.45px;
     color: {t["muted"]};
     text-align: center;
     line-height: 1.15;
@@ -645,7 +646,7 @@ button[data-testid="stExpandSidebarButton"] *,
     background: {t["card_bg"]};
     border: 1px solid {t["border"]};
     border-radius: 10px;
-    padding: 6px 12px;
+    padding: 7px 12px;
     box-shadow: {t["card_shadow"]};
     display: flex;
     align-items: baseline;
@@ -653,35 +654,35 @@ button[data-testid="stExpandSidebarButton"] *,
     gap: 6px;
 }}
 .kpi-lbl {{
-    font-size: 10px;
-    font-weight: 700;
+    font-size: 11px;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.7px;
+    letter-spacing: 0.6px;
     color: {t["muted"]};
 }}
 .kpi-val {{
     font-family: 'JetBrains Mono', monospace;
-    font-size: 13.5px;
-    font-weight: 700;
+    font-size: 15px;
+    font-weight: 800;
     color: {t["text"]};
 }}
 
-/* Auto-Adjusting Responsive Grid: 4 (Desktop) -> 2 (Tablet) -> 1 (Mobile) */
+/* Auto-Adjusting Responsive Grid: 4 (Desktop) -> 2 (Tablet/Landscape) -> 1 (Phones) */
 .four-block-grid {{
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 9px;
+    gap: 8px;
     width: 100%;
     max-width: 100%;
     align-items: start;
     box-sizing: border-box;
 }}
-@media (max-width: 1080px), (max-aspect-ratio: 5/4) and (max-width: 1200px) {{
+@media (max-width: 1120px) {{
     .four-block-grid {{
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }}
 }}
-@media (max-width: 620px), (max-aspect-ratio: 3/4) {{
+@media (max-width: 620px) {{
     .four-block-grid {{
         grid-template-columns: minmax(0, 1fr);
         gap: 10px;
@@ -706,12 +707,12 @@ button[data-testid="stExpandSidebarButton"] *,
 .q-card-hdr {{
     background: {t["hdr_bg"]};
     color: {t["hdr_fg"]};
-    padding: 7px 10px 5px 10px;
+    padding: 7px 9px 5px 9px;
     border-bottom: 1px solid {t["border_soft"]};
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
 }}
 .q-title-wrap {{
     display: flex;
@@ -726,25 +727,25 @@ button[data-testid="stExpandSidebarButton"] *,
     flex-shrink: 0;
 }}
 .q-code {{
-    font-size: 12.5px;
+    font-size: 13.5px;
     font-weight: 800;
     color: {t["text"]};
 }}
 .q-grade {{
-    font-size: 10px;
-    font-weight: 700;
+    font-size: 11px;
+    font-weight: 800;
     color: {t["muted"]};
 }}
 .q-hdr-metric {{
     font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    font-weight: 700;
+    font-size: 12.5px;
+    font-weight: 800;
     white-space: nowrap;
 }}
 .q-card-sub {{
-    font-size: 10px;
-    font-weight: 600;
-    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3.5px 9px;
     background: {t["card_bg"]};
     color: {t["muted"]};
     border-bottom: 1px solid {t["border_soft"]};
@@ -754,8 +755,9 @@ button[data-testid="stExpandSidebarButton"] *,
 }}
 .q-card-sub b {{
     font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
     color: {t["text"]};
-    font-weight: 700;
+    font-weight: 800;
 }}
 
 table.compact-tbl {{
@@ -766,48 +768,42 @@ table.compact-tbl {{
 table.compact-tbl th {{
     background: {t["sub_bg"]};
     color: {t["muted"]};
-    font-size: 9px;
+    font-size: 10.5px;
     font-weight: 800;
-    letter-spacing: 0.5px;
-    padding: 4px 4px;
+    letter-spacing: 0.4px;
+    padding: 4px 3px;
     text-align: right;
     border-bottom: 1px solid {t["border"]};
     border-right: 1px solid {t["border_soft"]};
 }}
 table.compact-tbl th:first-child {{
     text-align: left;
-    padding-left: 8px;
+    padding-left: 7px;
 }}
 table.compact-tbl th:last-child {{
     border-right: none;
-    padding-right: 8px;
+    padding-right: 7px;
 }}
 table.compact-tbl td {{
     font-family: 'JetBrains Mono', monospace;
-    font-size: clamp(10px, 0.82vw, 11.5px);
-    font-weight: 600;
-    padding: 2.5px 4px;
+    font-size: clamp(11px, 0.92vw, 13px);
+    font-weight: 800;
+    padding: 3px 3px;
     line-height: 1.3;
     text-align: right;
     border-bottom: 1px solid {t["border_soft"]};
     border-right: 1px solid {t["border_soft"]};
     white-space: nowrap;
 }}
-@media (max-width: 620px) {{
-    table.compact-tbl td {{
-        font-size: 12px;
-        padding: 4.5px 6px;
-    }}
-}}
 table.compact-tbl td:first-child {{
     font-family: 'Plus Jakarta Sans', sans-serif;
     text-align: left;
-    padding-left: 8px;
-    font-weight: 700;
+    padding-left: 7px;
+    font-weight: 800;
 }}
 table.compact-tbl td:last-child {{
     border-right: none;
-    padding-right: 8px;
+    padding-right: 7px;
 }}
 table.compact-tbl tbody tr:hover td {{
     background-color: {t["row_hover"]};
@@ -823,27 +819,65 @@ table.compact-tbl tr.row-urgent td {{
 }}
 table.compact-tbl tr.row-subtotal td {{
     background: {t["sub_bg"]};
-    font-weight: 700;
+    font-weight: 800;
     border-top: 1.5px solid {t["border"]};
     border-bottom: none;
     padding-top: 5px;
     padding-bottom: 5px;
 }}
 
+/* Regular Android Phones & Folded Cover (<= 620px): Bold & Crisp 1-Column */
+@media (max-width: 620px) {{
+    [data-testid="stMainBlockContainer"],
+    .block-container {{
+        padding-left: 0.45rem !important;
+        padding-right: 0.45rem !important;
+    }}
+    table.compact-tbl th {{
+        font-size: 11px;
+        padding: 5px 5px;
+    }}
+    table.compact-tbl td {{
+        font-size: 13.5px;
+        font-weight: 800;
+        padding: 5px 5px;
+    }}
+}}
+
+/* Isolated Unfolded Z Fold / Square Inner Display ONLY (does NOT affect regular Android phones) */
+@media (min-width: 621px) and (max-width: 1024px) and (min-aspect-ratio: 4/5) and (max-aspect-ratio: 7/5) {{
+    .four-block-grid {{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }}
+    .kpi-strip {{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }}
+    table.compact-tbl th {{
+        font-size: 11px;
+        padding: 5px 5px;
+    }}
+    table.compact-tbl td {{
+        font-size: 13px;
+        font-weight: 800;
+        padding: 4.5px 5px;
+    }}
+}}
+
 .val-short {{
     color: {t["short_fg"]} !important;
-    font-weight: 700 !important;
+    font-weight: 800 !important;
 }}
 .val-surplus {{
     color: {t["surplus_fg"]} !important;
-    font-weight: 700 !important;
+    font-weight: 800 !important;
 }}
 .urg-tag {{
     display: inline-block;
     background: {t["urg_pill_bg"]};
     color: {t["urg_pill_fg"]};
     font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 8px;
+    font-size: 8.5px;
     font-weight: 800;
     letter-spacing: 0.4px;
     padding: 1px 4px;
@@ -862,8 +896,8 @@ table.compact-tbl tr.row-subtotal td {{
 [data-testid="stExpander"] summary,
 [data-testid="stExpander"] summary * {{
     color: {t["text"]} !important;
-    font-weight: 700 !important;
-    font-size: 12px !important;
+    font-weight: 800 !important;
+    font-size: 13.5px !important;
 }}
 .gt-bar {{
     background: {t["card_bg"]};
@@ -871,9 +905,9 @@ table.compact-tbl tr.row-subtotal td {{
     border-radius: 11px;
     box-shadow: {t["card_shadow"]};
     margin-top: 4px;
-    padding: 8px 14px;
-    font-size: 11.5px;
-    font-weight: 600;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 800;
     color: {t["text"]};
     display: flex;
     flex-wrap: wrap;
@@ -883,7 +917,8 @@ table.compact-tbl tr.row-subtotal td {{
 }}
 .gt-nums {{
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+    font-size: 13.5px;
+    font-weight: 800;
 }}
 
 /* Buying Table */
@@ -904,7 +939,7 @@ table.buy-tbl {{
 table.buy-tbl th {{
     background: {t["hdr_bg"]};
     color: {t["muted"]};
-    font-size: 10.5px;
+    font-size: 12px;
     font-weight: 800;
     letter-spacing: 0.5px;
     text-transform: uppercase;
@@ -917,9 +952,9 @@ table.buy-tbl th:first-child {{ text-align: left; }}
 table.buy-tbl th:last-child {{ border-right: none; }}
 table.buy-tbl td {{
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12.5px;
-    font-weight: 600;
-    padding: 4.5px 12px;
+    font-size: 14px;
+    font-weight: 800;
+    padding: 5px 12px;
     line-height: 1.3;
     text-align: right;
     border-bottom: 1px solid {t["border_soft"]};
@@ -928,7 +963,7 @@ table.buy-tbl td {{
 table.buy-tbl td:first-child {{
     font-family: 'Plus Jakarta Sans', sans-serif;
     text-align: left;
-    font-weight: 700;
+    font-weight: 800;
 }}
 table.buy-tbl td:last-child {{ border-right: none; }}
 table.buy-tbl tbody tr:hover td {{
@@ -936,7 +971,7 @@ table.buy-tbl tbody tr:hover td {{
 }}
 table.buy-tbl tr.row-subtotal td {{
     background: {t["sub_bg"]};
-    font-weight: 700;
+    font-weight: 800;
     border-top: 1.5px solid {t["border"]};
     border-bottom: 1.5px solid {t["border"]};
 }}
@@ -944,6 +979,7 @@ table.buy-tbl tfoot td {{
     background: {t["hdr_bg"]};
     color: {t["text"]};
     font-weight: 800;
+    font-size: 14px;
     padding: 8px 12px;
     border-top: 1.5px solid {t["border"]};
 }}
@@ -954,10 +990,10 @@ table.buy-tbl tfoot td {{
     color: {t["accent_fg"]} !important;
     border: none !important;
     border-radius: 8px !important;
-    font-weight: 700 !important;
-    font-size: 12.5px !important;
-    height: 34px !important;
-    padding: 0 16px !important;
+    font-weight: 800 !important;
+    font-size: 13.5px !important;
+    height: 36px !important;
+    padding: 0 18px !important;
 }}
 .block-container .stButton > button[kind="primary"] * {{
     color: {t["accent_fg"]} !important;
@@ -1103,7 +1139,7 @@ if "last_sync" not in st.session_state:
 
 DIAMOND_SVG = (
     '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" '
-    'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+    'stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
     '<path d="M6 3h12l4 6-10 13L2 9z"/><path d="M2 9h20"/><path d="M12 22 7 9l5-6 5 6-5 13z"/></svg>'
 )
 
@@ -1343,7 +1379,7 @@ def build_four_cards_full_html(sub_df: pd.DataFrame, sub_label: str, mode: str =
         if not body_rows:
             empty_msg = "No excess stock" if mode == "Excess" else "No negative shortage"
             body_rows.append(
-                f'<tr><td colspan="5" style="text-align:center;opacity:0.6;padding:10px;font-family:Plus Jakarta Sans,sans-serif;">{empty_msg}</td></tr>'
+                f'<tr><td colspan="5" style="text-align:center;opacity:0.65;padding:10px;font-family:Plus Jakarta Sans,sans-serif;">{empty_msg}</td></tr>'
             )
 
         thead = "<tr><th>SIEVE</th><th>REQ</th><th>BAG</th><th>ASS</th><th>FINAL</th></tr>"
