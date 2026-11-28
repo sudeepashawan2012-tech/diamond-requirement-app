@@ -15,6 +15,7 @@ QUALITY_BLOCKS = [
         "code": "M1",
         "grade": "VVS/DEF",
         "label": "M1 · VVS/DEF",
+        "accent": "#2563eb",
         "sieve_col": 1,     # A
         "req_col": 2,       # B
         "bagging_col": 3,   # C
@@ -27,6 +28,7 @@ QUALITY_BLOCKS = [
         "code": "M2",
         "grade": "VVS-VS/GH",
         "label": "M2 · VVS-VS/GH",
+        "accent": "#7c3aed",
         "sieve_col": 8,     # H
         "req_col": 9,       # I
         "bagging_col": 10,  # J
@@ -39,6 +41,7 @@ QUALITY_BLOCKS = [
         "code": "H1",
         "grade": "VVS-EF",
         "label": "H1 · VVS-EF",
+        "accent": "#0891b2",
         "sieve_col": 15,    # O
         "req_col": 16,      # P
         "bagging_col": 17,  # Q
@@ -51,6 +54,7 @@ QUALITY_BLOCKS = [
         "code": "M3",
         "grade": "SI/GH",
         "label": "M3 · SI/GH",
+        "accent": "#d97706",
         "sieve_col": 22,    # V
         "req_col": 23,      # W
         "bagging_col": 24,  # X
@@ -70,41 +74,54 @@ ROLE_PERMISSIONS = {
 
 THEMES = {
     "Light": {
-        "bg_app": "#eef2f6",
+        "bg_app": "#f1f5f9",
         "card_bg": "#ffffff",
+        "card_shadow": "0 2px 8px rgba(15, 23, 42, 0.06)",
         "text": "#0f172a",
-        "muted": "#475569",
-        "border": "#94a3b8",
-        "hdr_bg": "#0f172a",
+        "muted": "#64748b",
+        "border": "#cbd5e1",
+        "border_soft": "#e2e8f0",
+        "hdr_bg": "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+        "hdr_solid": "#0f172a",
         "hdr_fg": "#ffffff",
-        "sub_bg": "#e2e8f0",
+        "sub_bg": "#f8fafc",
+        "row_hover": "#f1f5f9",
         "btn_bg": "#ffffff",
-        "btn_fg": "#0f172a",
-        "btn_hover_bg": "#e2e8f0",
+        "btn_fg": "#1e293b",
+        "btn_hover_bg": "#f1f5f9",
         "btn_hover_fg": "#0f172a",
-        "btn_border": "#64748b",
-        "pri_bg": "#1d4ed8",
+        "btn_border": "#cbd5e1",
+        "pri_bg": "#2563eb",
         "pri_fg": "#ffffff",
         "bag_bg": "#f0fdf4",
         "ass_bg": "#eff6ff",
         "urg_bg": "#fef2f2",
         "input_bg": "#ffffff",
         "input_fg": "#0f172a",
+        "track_bg": "#0f172a",
+        "track_border": "#334155",
+        "knob_bg": "#cbd5e1",
+        "short_fg": "#dc2626",
+        "surplus_fg": "#16a34a",
     },
     "Dark": {
-        "bg_app": "#0b1120",
+        "bg_app": "#090e1a",
         "card_bg": "#111827",
+        "card_shadow": "0 4px 14px rgba(0, 0, 0, 0.35)",
         "text": "#f8fafc",
-        "muted": "#cbd5e1",
-        "border": "#475569",
-        "hdr_bg": "#020617",
+        "muted": "#94a3b8",
+        "border": "#334155",
+        "border_soft": "#1e293b",
+        "hdr_bg": "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
+        "hdr_solid": "#020617",
         "hdr_fg": "#f8fafc",
         "sub_bg": "#1e293b",
+        "row_hover": "#1e293b",
         "btn_bg": "#1e293b",
-        "btn_fg": "#f8fafc",
+        "btn_fg": "#f1f5f9",
         "btn_hover_bg": "#334155",
         "btn_hover_fg": "#ffffff",
-        "btn_border": "#94a3b8",
+        "btn_border": "#475569",
         "pri_bg": "#2563eb",
         "pri_fg": "#ffffff",
         "bag_bg": "#052e16",
@@ -112,6 +129,11 @@ THEMES = {
         "urg_bg": "#450a0a",
         "input_bg": "#1e293b",
         "input_fg": "#f8fafc",
+        "track_bg": "#020617",
+        "track_border": "#475569",
+        "knob_bg": "#e2e8f0",
+        "short_fg": "#f87171",
+        "surplus_fg": "#4ade80",
     },
 }
 
@@ -157,6 +179,10 @@ def inject_css(theme_name: str):
 
     st.markdown(
         f"""<style>
+html, body, [class*="css"] {{
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}}
+
 header[data-testid="stHeader"] {{
     background: transparent !important;
     height: 2.8rem !important;
@@ -179,25 +205,26 @@ header[data-testid="stHeader"] {{
 }}
 [data-testid="stMainBlockContainer"],
 .block-container {{
-    padding-top: 2.9rem !important;
-    padding-bottom: 1.2rem !important;
-    padding-left: 0.6rem !important;
-    padding-right: 0.6rem !important;
+    padding-top: 2.8rem !important;
+    padding-bottom: 3.8rem !important;
+    padding-left: 0.65rem !important;
+    padding-right: 0.65rem !important;
     width: 100% !important;
     max-width: 100% !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
 }}
 
-/* Sidebar expanded vs collapsed — eliminates blank left gap on collapse */
+/* Sidebar expanded vs collapsed — clean zero-gap collapse */
 section[data-testid="stSidebar"] {{
     background-color: {t["card_bg"]} !important;
     color: {t["text"]} !important;
 }}
 section[data-testid="stSidebar"][aria-expanded="true"] {{
-    min-width: 245px !important;
-    max-width: 265px !important;
-    border-right: 1.5px solid {t["border"]} !important;
+    min-width: 225px !important;
+    max-width: 245px !important;
+    border-right: 1px solid {t["border"]} !important;
+    box-shadow: 2px 0 12px rgba(15, 23, 42, 0.06) !important;
 }}
 section[data-testid="stSidebar"][aria-expanded="false"] {{
     min-width: 0px !important;
@@ -207,7 +234,7 @@ section[data-testid="stSidebar"][aria-expanded="false"] {{
     overflow: hidden !important;
 }}
 
-/* Bigger, high-contrast sidebar expand & collapse arrow buttons */
+/* ALWAYS-VISIBLE Sidebar Expand (>>) & Collapse (<<) buttons across Streamlit versions */
 [data-testid="stExpandSidebarButton"],
 [data-testid="collapsedControl"],
 [data-testid="stSidebarCollapsedControl"],
@@ -216,93 +243,164 @@ section[data-testid="stSidebar"][aria-expanded="false"] {{
     visibility: visible !important;
     z-index: 9999 !important;
 }}
+button[data-testid="stExpandSidebarButton"],
 [data-testid="stExpandSidebarButton"] button,
+button[data-testid="collapsedControl"],
 [data-testid="collapsedControl"] button,
+button[data-testid="stSidebarCollapsedControl"],
 [data-testid="stSidebarCollapsedControl"] button,
+button[data-testid="stSidebarCollapseButton"],
 [data-testid="stSidebarCollapseButton"] button {{
-    background-color: {t["pri_bg"]} !important;
+    background: {t["pri_bg"]} !important;
     color: {t["pri_fg"]} !important;
-    border: 2px solid {t["pri_fg"]} !important;
-    border-radius: 8px !important;
-    width: 38px !important;
-    height: 38px !important;
-    min-width: 38px !important;
-    min-height: 38px !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 9px !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
     padding: 0 !important;
-    display: flex !important;
+    display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35) !important;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35) !important;
     opacity: 1 !important;
+    visibility: visible !important;
+    transition: transform 0.15s ease, filter 0.15s ease !important;
 }}
+button[data-testid="stExpandSidebarButton"]:hover,
 [data-testid="stExpandSidebarButton"] button:hover,
 [data-testid="collapsedControl"] button:hover,
 [data-testid="stSidebarCollapsedControl"] button:hover,
 [data-testid="stSidebarCollapseButton"] button:hover {{
-    filter: brightness(1.15) !important;
+    filter: brightness(1.12) !important;
+    transform: scale(1.04) !important;
 }}
-[data-testid="stExpandSidebarButton"] button svg,
-[data-testid="collapsedControl"] button svg,
-[data-testid="stSidebarCollapsedControl"] button svg,
-[data-testid="stSidebarCollapseButton"] button svg {{
-    width: 22px !important;
-    height: 22px !important;
+button[data-testid="stExpandSidebarButton"] *,
+[data-testid="stExpandSidebarButton"] button *,
+[data-testid="collapsedControl"] button *,
+[data-testid="stSidebarCollapsedControl"] button *,
+[data-testid="stSidebarCollapseButton"] button * {{
+    color: {t["pri_fg"]} !important;
     fill: {t["pri_fg"]} !important;
     stroke: {t["pri_fg"]} !important;
-    color: {t["pri_fg"]} !important;
+    opacity: 1 !important;
 }}
+button[data-testid="stExpandSidebarButton"] span,
 [data-testid="stExpandSidebarButton"] button span,
-[data-testid="collapsedControl"] button span,
-[data-testid="stSidebarCollapsedControl"] button span,
 [data-testid="stSidebarCollapseButton"] button span {{
-    font-size: 24px !important;
-    font-weight: 900 !important;
-    color: {t["pri_fg"]} !important;
+    font-size: 20px !important;
+    font-weight: 800 !important;
     line-height: 1 !important;
 }}
 
-/* Clean sidebar spacing and typography */
+/* Sleek sidebar spacing — fixes cut-off section headers */
 [data-testid="stSidebar"] > div:first-child {{
-    padding-top: 0.75rem !important;
+    padding-top: 0.5rem !important;
 }}
 [data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {{
-    padding: 0.5rem 0.9rem 1.2rem 0.9rem !important;
+    padding: 0.4rem 0.85rem 1.2rem 0.85rem !important;
 }}
 [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {{
-    gap: 0.65rem !important;
+    gap: 0.45rem !important;
 }}
-[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
-[data-testid="stSidebar"] label p {{
-    color: {t["text"]} !important;
-    line-height: 1.4 !important;
-    margin: 0 !important;
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {{
     overflow: visible !important;
 }}
 [data-testid="stSidebar"] hr {{
-    margin: 10px 0 !important;
-    border-color: {t["border"]} !important;
+    margin: 8px 0 !important;
+    border-color: {t["border_soft"]} !important;
 }}
 .sb-brand {{
-    font-size: 16px;
+    font-size: 14.5px;
     font-weight: 900;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.5px;
     color: {t["text"]};
-    padding-bottom: 4px;
+    padding: 4px 0 8px 0;
+    border-bottom: 1px solid {t["border_soft"]};
     margin-bottom: 4px;
 }}
 .sb-section-title {{
-    font-size: 11px;
-    font-weight: 900;
+    font-size: 10.5px;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.7px;
+    letter-spacing: 0.8px;
     color: {t["muted"]};
-    margin-top: 4px;
-    margin-bottom: 2px;
+    padding: 4px 2px 6px 2px;
+    line-height: 1.45;
     display: block;
+    overflow: visible;
 }}
 
+/* Sleek, slim buttons (sidebar & page) */
+.stButton > button,
+.stDownloadButton > button {{
+    background-color: {t["btn_bg"]} !important;
+    color: {t["btn_fg"]} !important;
+    border: 1px solid {t["btn_border"]} !important;
+    font-weight: 700 !important;
+    font-size: 12px !important;
+    min-height: 32px !important;
+    height: 34px !important;
+    padding: 4px 12px !important;
+    border-radius: 8px !important;
+    white-space: nowrap !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
+    transition: all 0.15s ease !important;
+}}
+.stButton > button *,
+.stButton > button p,
+.stButton > button span {{
+    color: {t["btn_fg"]} !important;
+    font-weight: 700 !important;
+    font-size: 12px !important;
+}}
+.stButton > button:hover {{
+    background-color: {t["btn_hover_bg"]} !important;
+    border-color: {t["pri_bg"]} !important;
+}}
+.stButton > button[kind="primary"] {{
+    background: {t["pri_bg"]} !important;
+    color: {t["pri_fg"]} !important;
+    border-color: {t["pri_bg"]} !important;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.28) !important;
+}}
+.stButton > button[kind="primary"] *,
+.stButton > button[kind="primary"] p,
+.stButton > button[kind="primary"] span {{
+    color: {t["pri_fg"]} !important;
+}}
+
+/* Selectbox & text input theme consistency (fixes dark box in Light theme) */
+[data-baseweb="select"] > div,
+[data-baseweb="select"] > div > div {{
+    background-color: {t["input_bg"]} !important;
+    color: {t["input_fg"]} !important;
+    border-color: {t["btn_border"]} !important;
+    border-radius: 8px !important;
+    min-height: 34px !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+}}
+[data-baseweb="select"] span,
+[data-baseweb="select"] div,
+[data-baseweb="select"] svg {{
+    color: {t["input_fg"]} !important;
+    fill: {t["input_fg"]} !important;
+}}
+[data-testid="stTextInput"] input {{
+    background-color: {t["input_bg"]} !important;
+    color: {t["input_fg"]} !important;
+    border: 1px solid {t["btn_border"]} !important;
+    border-radius: 8px !important;
+    height: 34px !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+}}
+
+/* Tighter main vertical gaps */
 .block-container div[data-testid="stVerticalBlock"] {{
-    gap: 0.3rem !important;
+    gap: 0.35rem !important;
 }}
 .block-container div[data-testid="stMarkdownContainer"] {{
     width: 100% !important;
@@ -312,114 +410,190 @@ section[data-testid="stSidebar"][aria-expanded="false"] {{
     margin-bottom: 0 !important;
 }}
 
-/* Buttons */
-.stButton > button,
-.stDownloadButton > button {{
-    background-color: {t["btn_bg"]} !important;
-    color: {t["btn_fg"]} !important;
-    border: 1.5px solid {t["btn_border"]} !important;
-    font-weight: 800 !important;
-    font-size: 12.5px !important;
-    min-height: 38px !important;
-    padding: 5px 10px !important;
-    border-radius: 7px !important;
-    white-space: nowrap !important;
-}}
-.stButton > button *,
-.stButton > button p,
-.stButton > button span,
-.stButton > button div {{
-    color: {t["btn_fg"]} !important;
-    font-weight: 800 !important;
-}}
-.stButton > button:hover {{
-    background-color: {t["btn_hover_bg"]} !important;
-    color: {t["btn_hover_fg"]} !important;
-}}
-.stButton > button:hover *,
-.stButton > button:hover p,
-.stButton > button:hover span {{
-    color: {t["btn_hover_fg"]} !important;
-}}
-.stButton > button[kind="primary"] {{
-    background-color: {t["pri_bg"]} !important;
-    color: {t["pri_fg"]} !important;
-    border-color: {t["pri_bg"]} !important;
-}}
-.stButton > button[kind="primary"] *,
-.stButton > button[kind="primary"] p,
-.stButton > button[kind="primary"] span {{
-    color: {t["pri_fg"]} !important;
-}}
-
-/* Inputs & Selectboxes in both themes */
-[data-baseweb="select"] > div {{
-    background-color: {t["input_bg"]} !important;
-    color: {t["input_fg"]} !important;
-    border-color: {t["btn_border"]} !important;
-    font-weight: 800 !important;
-    min-height: 38px !important;
-}}
-[data-baseweb="select"] span,
-[data-baseweb="select"] svg {{
-    color: {t["input_fg"]} !important;
-    fill: {t["input_fg"]} !important;
-}}
-[data-testid="stTextInput"] input {{
-    background-color: {t["input_bg"]} !important;
-    color: {t["input_fg"]} !important;
-    border: 1.5px solid {t["btn_border"]} !important;
-    font-weight: 700 !important;
-}}
-
-[data-testid="stExpander"] summary,
-[data-testid="stExpander"] summary * {{
-    color: {t["text"]} !important;
-    font-weight: 900 !important;
-}}
-[data-testid="stExpander"] {{
-    background-color: {t["card_bg"]} !important;
-    border: 1.5px solid {t["border"]} !important;
-    border-radius: 7px !important;
-}}
-
+/* Top Executive Header Bar */
 .portal-banner {{
     background: {t["card_bg"]};
-    border: 1.5px solid {t["border"]};
-    border-radius: 7px;
-    padding: 6px 12px;
+    border: 1px solid {t["border"]};
+    border-radius: 10px;
+    padding: 8px 14px;
+    box-shadow: {t["card_shadow"]};
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
+    gap: 8px;
     width: 100%;
     box-sizing: border-box;
 }}
 .portal-title {{
     font-size: 15px;
     font-weight: 900;
+    letter-spacing: -0.2px;
+    color: {t["text"]};
 }}
 .role-pill {{
-    font-size: 11px;
-    font-weight: 900;
-    padding: 2px 8px;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 2px 9px;
     border-radius: 999px;
     background: {t["sub_bg"]};
+    color: {t["text"]};
     border: 1px solid {t["border"]};
+    vertical-align: middle;
+}}
+.banner-meta {{
+    font-size: 11px;
+    font-weight: 700;
+    color: {t["muted"]};
 }}
 
-/* Automatic layout adaptation by screen width and aspect ratio */
+/* CUSTOM 3-WAY PILL SLIDE SWITCH (Left = Excess, Center = All, Right = Shortage) */
+.slider-shell {{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+}}
+[data-testid="stRadio"] {{
+    display: flex !important;
+    justify-content: flex-end !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}}
+@media (max-width: 768px) {{
+    [data-testid="stRadio"] {{
+        justify-content: center !important;
+    }}
+}}
+[data-testid="stRadio"] > div[role="radiogroup"] {{
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0 !important;
+    width: 246px !important;
+    height: 46px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    user-select: none !important;
+}}
+/* Pill Track */
+[data-testid="stRadio"] > div[role="radiogroup"]::before {{
+    content: "" !important;
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    height: 26px !important;
+    border-radius: 999px !important;
+    background: {t["track_bg"]} !important;
+    border: 1.5px solid {t["track_border"]} !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45) !important;
+    z-index: 0 !important;
+    pointer-events: none !important;
+    transition: background 0.25s ease, border-color 0.25s ease !important;
+}}
+/* Sliding Circular Thumb Knob */
+[data-testid="stRadio"] > div[role="radiogroup"]::after {{
+    content: "" !important;
+    position: absolute !important;
+    bottom: 3px !important;
+    left: 113px !important;
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50% !important;
+    background: {t["knob_bg"]} !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45) !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+    transition: left 0.22s cubic-bezier(0.4, 0, 0.2, 1), background 0.22s ease !important;
+}}
+/* State 1 (Left): Excess */
+[data-testid="stRadio"] > div[role="radiogroup"]:has(label:nth-of-type(1) input:checked)::before {{
+    background: #064e3b !important;
+    border-color: #22c55e !important;
+}}
+[data-testid="stRadio"] > div[role="radiogroup"]:has(label:nth-of-type(1) input:checked)::after {{
+    left: 4px !important;
+    background: #4ade80 !important;
+}}
+/* State 2 (Center): All */
+[data-testid="stRadio"] > div[role="radiogroup"]:has(label:nth-of-type(2) input:checked)::after {{
+    left: 113px !important;
+    background: {t["knob_bg"]} !important;
+}}
+/* State 3 (Right): Shortage */
+[data-testid="stRadio"] > div[role="radiogroup"]:has(label:nth-of-type(3) input:checked)::before {{
+    background: #450a0a !important;
+    border-color: #ef4444 !important;
+}}
+[data-testid="stRadio"] > div[role="radiogroup"]:has(label:nth-of-type(3) input:checked)::after {{
+    left: 222px !important;
+    background: #f87171 !important;
+}}
+
+/* Clickable labels spanning text + track underneath */
+[data-testid="stRadio"] label[data-baseweb="radio"] {{
+    position: relative !important;
+    z-index: 2 !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 46px !important;
+    margin: 0 !important;
+    padding: 1px 0 0 0 !important;
+    cursor: pointer !important;
+    background: transparent !important;
+}}
+/* Hide native BaseWeb radio circle without touching text */
+[data-testid="stRadio"] label[data-baseweb="radio"] > div:not(:has([data-testid="stMarkdownContainer"])) {{
+    display: none !important;
+}}
+[data-testid="stRadio"] label[data-baseweb="radio"] p {{
+    font-size: 10.5px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.3px !important;
+    text-transform: uppercase !important;
+    color: {t["muted"]} !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+    transition: color 0.2s ease !important;
+}}
+[data-testid="stRadio"] label[data-baseweb="radio"]:nth-of-type(1):has(input:checked) p {{
+    color: {t["surplus_fg"]} !important;
+}}
+[data-testid="stRadio"] label[data-baseweb="radio"]:nth-of-type(2):has(input:checked) p {{
+    color: {t["text"]} !important;
+}}
+[data-testid="stRadio"] label[data-baseweb="radio"]:nth-of-type(3):has(input:checked) p {{
+    color: {t["short_fg"]} !important;
+}}
+
+/* Expander styling */
+[data-testid="stExpander"] {{
+    background-color: {t["card_bg"]} !important;
+    border: 1px solid {t["border"]} !important;
+    border-radius: 10px !important;
+    box-shadow: {t["card_shadow"]} !important;
+}}
+[data-testid="stExpander"] summary,
+[data-testid="stExpander"] summary * {{
+    color: {t["text"]} !important;
+    font-weight: 800 !important;
+    font-size: 12.5px !important;
+}}
+
+/* Auto-adjusting 4 -> 2 -> 1 Responsive Grid */
 .four-block-grid {{
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 6px;
+    gap: 8px;
     width: 100%;
     max-width: 100%;
     align-items: start;
     box-sizing: border-box;
 }}
-@media (max-aspect-ratio: 5/4) and (max-width: 1200px) {{
+@media (max-width: 1080px), (max-aspect-ratio: 5/4) and (max-width: 1200px) {{
     .four-block-grid {{
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }}
@@ -427,24 +601,31 @@ section[data-testid="stSidebar"][aria-expanded="false"] {{
 @media (max-width: 620px), (max-aspect-ratio: 3/4) {{
     .four-block-grid {{
         grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
     }}
 }}
 
+/* Sleek Quality Cards */
 .q-card {{
     background: {t["card_bg"]};
-    border: 1.5px solid {t["border"]};
-    border-radius: 6px;
+    border: 1px solid {t["border"]};
+    border-radius: 10px;
+    box-shadow: {t["card_shadow"]};
     min-width: 0;
     width: 100%;
-    overflow-x: auto;
+    overflow: hidden;
     box-sizing: border-box;
+}}
+.q-card-scroll {{
+    width: 100%;
+    overflow-x: auto;
 }}
 .q-card-hdr {{
     background: {t["hdr_bg"]};
     color: {t["hdr_fg"]};
-    padding: 4px 6px;
-    font-size: 11.5px;
-    font-weight: 900;
+    padding: 5px 8px;
+    font-size: clamp(10.5px, 0.85vw, 12px);
+    font-weight: 800;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -452,14 +633,17 @@ section[data-testid="stSidebar"][aria-expanded="false"] {{
 }}
 .q-card-sub {{
     font-size: 10.5px;
-    font-weight: 800;
-    padding: 2px 6px;
+    font-weight: 700;
+    padding: 3px 8px;
     background: {t["sub_bg"]};
-    color: {t["text"]};
-    border-bottom: 1.5px solid {t["border"]};
+    color: {t["muted"]};
+    border-bottom: 1px solid {t["border"]};
     display: flex;
     justify-content: space-between;
     gap: 4px;
+}}
+.q-card-sub b {{
+    color: {t["text"]};
 }}
 
 table.compact-tbl {{
@@ -469,38 +653,50 @@ table.compact-tbl {{
 }}
 table.compact-tbl th {{
     background: {t["sub_bg"]};
-    color: {t["text"]};
-    font-size: 10px;
-    font-weight: 900;
-    padding: 2px 2.5px;
+    color: {t["muted"]};
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    padding: 3px 3px;
     text-align: right;
-    border-bottom: 1.5px solid {t["border"]};
-    border-right: 1px solid {t["border"]};
+    border-bottom: 1px solid {t["border"]};
+    border-right: 1px solid {t["border_soft"]};
 }}
 table.compact-tbl th:first-child {{
     text-align: left;
-    padding-left: 4px;
+    padding-left: 6px;
 }}
 table.compact-tbl th:last-child {{
     border-right: none;
+    padding-right: 6px;
 }}
 table.compact-tbl td {{
-    font-size: 11.5px;
-    font-weight: 900;
-    padding: 2px 2.5px;
-    line-height: 1.2;
+    font-size: clamp(10.5px, 0.88vw, 12px);
+    font-weight: 700;
+    padding: 2.5px 3px;
+    line-height: 1.25;
     text-align: right;
-    border-bottom: 1px solid {t["border"]};
-    border-right: 1px solid {t["border"]};
+    border-bottom: 1px solid {t["border_soft"]};
+    border-right: 1px solid {t["border_soft"]};
     white-space: nowrap;
+}}
+@media (max-width: 620px) {{
+    table.compact-tbl td {{
+        font-size: 12.5px;
+        padding: 4px 5px;
+    }}
 }}
 table.compact-tbl td:first-child {{
     text-align: left;
-    padding-left: 4px;
-    font-weight: 900;
+    padding-left: 6px;
+    font-weight: 800;
 }}
 table.compact-tbl td:last-child {{
     border-right: none;
+    padding-right: 6px;
+}}
+table.compact-tbl tbody tr:hover td {{
+    background-color: {t["row_hover"]};
 }}
 table.compact-tbl td.cell-bag {{
     background: {t["bag_bg"]};
@@ -514,33 +710,57 @@ table.compact-tbl tr.row-urgent td {{
 table.compact-tbl tr.row-subtotal td {{
     background: {t["sub_bg"]};
     font-weight: 900;
-    border-top: 1.5px solid {t["hdr_bg"]};
-    border-bottom: 1.5px solid {t["hdr_bg"]};
+    border-top: 1.5px solid {t["border"]};
+    border-bottom: none;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }}
+
 .val-short {{
-    color: #ef4444 !important;
-    font-weight: 900 !important;
+    color: {t["short_fg"]} !important;
+    font-weight: 800 !important;
 }}
 .val-surplus {{
-    color: #22c55e !important;
-    font-weight: 900 !important;
+    color: {t["surplus_fg"]} !important;
+    font-weight: 800 !important;
 }}
 .urg-tag {{
     display: inline-block;
     background: #dc2626;
     color: #ffffff;
-    font-size: 8.5px;
-    font-weight: 900;
-    padding: 0px 2.5px;
-    border-radius: 3px;
-    margin-left: 2px;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    padding: 1px 4px;
+    border-radius: 4px;
+    margin-left: 3px;
     vertical-align: middle;
 }}
 
+/* Grand Total Footer Card */
+.gt-bar {{
+    background: {t["card_bg"]};
+    border: 1px solid {t["border"]};
+    border-radius: 10px;
+    box-shadow: {t["card_shadow"]};
+    margin-top: 6px;
+    padding: 7px 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: {t["text"]};
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}}
+
+/* Buying Table */
 .buy-wrap {{
     background: {t["card_bg"]};
-    border: 1.5px solid {t["border"]};
-    border-radius: 7px;
+    border: 1px solid {t["border"]};
+    border-radius: 10px;
+    box-shadow: {t["card_shadow"]};
     overflow-x: auto;
     width: 100%;
     box-sizing: border-box;
@@ -551,41 +771,44 @@ table.buy-tbl {{
     font-variant-numeric: tabular-nums;
 }}
 table.buy-tbl th {{
-    background: {t["hdr_bg"]};
+    background: {t["hdr_solid"]};
     color: {t["hdr_fg"]};
-    font-size: 12px;
-    font-weight: 900;
-    padding: 4px 8px;
+    font-size: 11.5px;
+    font-weight: 800;
+    padding: 7px 10px;
     text-align: right;
-    border-right: 1px solid rgba(255,255,255,0.2);
+    border-right: 1px solid rgba(255, 255, 255, 0.14);
 }}
 table.buy-tbl th:first-child {{ text-align: left; }}
 table.buy-tbl th:last-child {{ border-right: none; }}
 table.buy-tbl td {{
-    font-size: 13.5px;
-    font-weight: 900;
-    padding: 2px 8px;
-    line-height: 1.25;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 10px;
+    line-height: 1.3;
     text-align: right;
-    border-bottom: 1px solid {t["border"]};
-    border-right: 1px solid {t["border"]};
+    border-bottom: 1px solid {t["border_soft"]};
+    border-right: 1px solid {t["border_soft"]};
 }}
 table.buy-tbl td:first-child {{
     text-align: left;
-    font-weight: 900;
+    font-weight: 800;
 }}
 table.buy-tbl td:last-child {{ border-right: none; }}
+table.buy-tbl tbody tr:hover td {{
+    background: {t["row_hover"]};
+}}
 table.buy-tbl tr.row-subtotal td {{
     background: {t["sub_bg"]};
     font-weight: 900;
-    border-top: 1.5px solid {t["hdr_bg"]};
-    border-bottom: 1.5px solid {t["hdr_bg"]};
+    border-top: 1.5px solid {t["border"]};
+    border-bottom: 1.5px solid {t["border"]};
 }}
 table.buy-tbl tfoot td {{
-    background: {t["hdr_bg"]};
+    background: {t["hdr_solid"]};
     color: {t["hdr_fg"]};
     font-weight: 900;
-    padding: 4px 8px;
+    padding: 7px 10px;
 }}
 </style>""",
         unsafe_allow_html=True,
@@ -716,16 +939,21 @@ if "theme" not in st.session_state or st.session_state.theme not in THEMES:
     st.session_state.theme = "Light"
 if "view" not in st.session_state or st.session_state.view not in ("M1, M2, H1 & M3", "Buying"):
     st.session_state.view = "M1, M2, H1 & M3"
-if "filter_mode" not in st.session_state or st.session_state.filter_mode not in ("All", "Shortage", "Excess"):
+if "filter_mode" not in st.session_state or st.session_state.filter_mode not in ("Excess", "All", "Shortage"):
     st.session_state.filter_mode = "All"
 if "refresh_notice" not in st.session_state:
     st.session_state.refresh_notice = ""
 
+
+def _sync_filter_slider():
+    st.session_state.filter_mode = st.session_state._filter_slider
+
+
 # --- SIDEBAR ---
 with st.sidebar:
-    st.markdown('<div class="sb-brand">💎 DIAMOND REQ</div>', unsafe_allow_html=True)
-    st.markdown('<span class="sb-section-title">Views</span>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-brand">💎 DIAMOND PORTAL</div>', unsafe_allow_html=True)
 
+    st.markdown('<div class="sb-section-title">Views</div>', unsafe_allow_html=True)
     if st.button(
         "M1, M2, H1 & M3",
         use_container_width=True,
@@ -743,7 +971,7 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
-    st.markdown('<span class="sb-section-title">Role Selector</span>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-section-title">Role Access</div>', unsafe_allow_html=True)
     sel_role = st.selectbox(
         "Select Role",
         list(ROLE_PERMISSIONS.keys()),
@@ -755,7 +983,7 @@ with st.sidebar:
             st.session_state.role = "Guest"
             st.rerun()
     else:
-        pin_in = st.text_input("PIN", type="password", placeholder="Enter PIN")
+        pin_in = st.text_input("PIN", type="password", placeholder="Enter PIN", label_visibility="collapsed")
         if st.button("🔓 Unlock Role", use_container_width=True):
             if pin_in.strip() == ROLE_PERMISSIONS[sel_role]["pin"]:
                 st.session_state.role = sel_role
@@ -765,7 +993,7 @@ with st.sidebar:
                 st.error("Invalid PIN")
 
     st.markdown("---")
-    st.markdown('<span class="sb-section-title">Appearance</span>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-section-title">Theme</div>', unsafe_allow_html=True)
     theme_choice = st.selectbox(
         "Select Theme",
         ["Light", "Dark"],
@@ -777,12 +1005,12 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
-    st.markdown('<span class="sb-section-title">Data Sync</span>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-section-title">Data Sync</div>', unsafe_allow_html=True)
     if st.button("🔄 Refresh Data", use_container_width=True):
         load_requirement_sheet.clear()
         load_buying_sheet.clear()
         ist_now = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%I:%M:%S %p")
-        st.session_state.refresh_notice = f"Data refreshed from Google Sheets at {ist_now}"
+        st.session_state.refresh_notice = f"Refreshed at {ist_now}"
         st.rerun()
 
     if st.session_state.refresh_notice:
@@ -791,7 +1019,7 @@ with st.sidebar:
 inject_css(st.session_state.theme)
 
 if st.session_state.refresh_notice:
-    st.toast(f"✅ {st.session_state.refresh_notice}", icon="🔄")
+    st.toast(f"✅ Data {st.session_state.refresh_notice}", icon="🔄")
     st.session_state.refresh_notice = ""
 
 role = st.session_state.role
@@ -799,17 +1027,41 @@ perms = ROLE_PERMISSIONS[role]
 filter_mode = st.session_state.filter_mode
 
 banner_note = (
-    "Final Req Sum = Positive Only (Excess)"
+    "Final Sum = Positive Only (Excess)"
     if (st.session_state.view == "M1, M2, H1 & M3" and filter_mode == "Excess")
-    else "Final Req Sum = Negative Only"
+    else "Final Sum = Negative Only"
 )
 
-st.markdown(
-    f'<div class="portal-banner"><div><span class="portal-title">💎 {st.session_state.view}</span>'
-    f'&nbsp;<span class="role-pill">Role: {role}</span></div>'
-    f'<div style="font-size:11px;font-weight:800;opacity:0.85;">{banner_note} · Primary Sieves 6(0)–6.5</div></div>',
-    unsafe_allow_html=True,
-)
+if st.session_state.view == "M1, M2, H1 & M3":
+    hdr_col, sld_col = st.columns([3.2, 1.2], vertical_alignment="center")
+    with hdr_col:
+        st.markdown(
+            f'<div class="portal-banner">'
+            f'<div><span class="portal-title">💎 {st.session_state.view}</span>'
+            f'&nbsp;&nbsp;<span class="role-pill">{role}</span></div>'
+            f'<div class="banner-meta">{banner_note} · Primary 6(0)–6.5</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+    with sld_col:
+        st.radio(
+            "Filter Mode",
+            options=["Excess", "All", "Shortage"],
+            index=["Excess", "All", "Shortage"].index(filter_mode),
+            horizontal=True,
+            label_visibility="collapsed",
+            key="_filter_slider",
+            on_change=_sync_filter_slider,
+        )
+else:
+    st.markdown(
+        f'<div class="portal-banner">'
+        f'<div><span class="portal-title">💎 {st.session_state.view}</span>'
+        f'&nbsp;&nbsp;<span class="role-pill">{role}</span></div>'
+        f'<div class="banner-meta">Buying Summary · Primary 6(0)–6.5</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
 
 try:
     df = load_requirement_sheet()
@@ -823,7 +1075,6 @@ def build_four_cards_full_html(sub_df: pd.DataFrame, sub_label: str, mode: str =
     for blk in QUALITY_BLOCKS:
         q = blk["code"]
 
-        # Filter rows for this quality block based on mode
         visible_rows = []
         for _, r in sub_df.iterrows():
             fin = float(r[f"{q}_fin"] or 0.0)
@@ -842,13 +1093,13 @@ def build_four_cards_full_html(sub_df: pd.DataFrame, sub_label: str, mode: str =
         if mode == "Excess":
             fin_sum = sum_positive(sub_df[f"{q}_fin"])
             fin_sum_cls = "val-surplus" if fin_sum > 0.001 else ""
-            hdr_sum_html = f'<span style="color:#4ade80;">Pos Final +{fin_sum:.2f}</span>'
+            hdr_sum_html = f'<span style="color:#4ade80;">+{fin_sum:.2f}</span>'
         else:
             fin_sum = sum_negative(sub_df[f"{q}_fin"])
             fin_sum_cls = "val-short" if fin_sum < -0.001 else ""
             urg_cnt = int((sub_df[f"{q}_urg"].fillna("") != "").sum())
             urg_pill = f' · <span style="color:#fca5a5;">{urg_cnt} URG</span>' if urg_cnt > 0 else ""
-            hdr_sum_html = f'<span>Neg Final {fin_sum:.2f}{urg_pill}</span>'
+            hdr_sum_html = f'<span>{fin_sum:.2f}{urg_pill}</span>'
 
         body_rows = []
         for r in visible_rows:
@@ -876,7 +1127,7 @@ def build_four_cards_full_html(sub_df: pd.DataFrame, sub_label: str, mode: str =
         if not body_rows:
             empty_msg = "No excess stock" if mode == "Excess" else "No negative shortage"
             body_rows.append(
-                f'<tr><td colspan="5" style="text-align:center;opacity:0.65;">{empty_msg}</td></tr>'
+                f'<tr><td colspan="5" style="text-align:center;opacity:0.65;padding:8px;">{empty_msg}</td></tr>'
             )
 
         thead = "<tr><th>SIEVE</th><th>REQ</th><th>BAG</th><th>ASS</th><th>FINAL</th></tr>"
@@ -892,10 +1143,10 @@ def build_four_cards_full_html(sub_df: pd.DataFrame, sub_label: str, mode: str =
         )
 
         cards.append(
-            f'<div class="q-card">'
+            f'<div class="q-card" style="border-top: 3px solid {blk["accent"]};">'
             f'<div class="q-card-hdr"><span>{blk["label"]}</span>{hdr_sum_html}</div>'
-            f'<div class="q-card-sub"><span>Req: <b>{req_sum:.1f}</b></span><span>Bag+Ass: <b>{(bag_sum + ass_sum):.1f}</b></span></div>'
-            f'<table class="compact-tbl"><thead>{thead}</thead><tbody>{"".join(body_rows)}{sub_row}</tbody></table>'
+            f'<div class="q-card-sub"><span>Req: <b>{req_sum:.1f}</b></span><span>Stock: <b>{(bag_sum + ass_sum):.1f}</b></span></div>'
+            f'<div class="q-card-scroll"><table class="compact-tbl"><thead>{thead}</thead><tbody>{"".join(body_rows)}{sub_row}</tbody></table></div>'
             f"</div>"
         )
 
@@ -903,33 +1154,6 @@ def build_four_cards_full_html(sub_df: pd.DataFrame, sub_label: str, mode: str =
 
 
 if st.session_state.view == "M1, M2, H1 & M3":
-    # Two-sided filter switch: Shortage <-> All <-> Excess (clearly visible in Light & Dark modes)
-    f_col1, f_col2, f_col3 = st.columns(3)
-    with f_col1:
-        if st.button(
-            "🔴 Shortage / URG",
-            use_container_width=True,
-            type="primary" if filter_mode == "Shortage" else "secondary",
-        ):
-            st.session_state.filter_mode = "Shortage"
-            st.rerun()
-    with f_col2:
-        if st.button(
-            "📋 All Sizes",
-            use_container_width=True,
-            type="primary" if filter_mode == "All" else "secondary",
-        ):
-            st.session_state.filter_mode = "All"
-            st.rerun()
-    with f_col3:
-        if st.button(
-            "🟢 Excess Only",
-            use_container_width=True,
-            type="primary" if filter_mode == "Excess" else "secondary",
-        ):
-            st.session_state.filter_mode = "Excess"
-            st.rerun()
-
     primary_df = df[df["Tier"] == "Primary"]
     large_df = df[df["Tier"] == "Large"]
 
@@ -941,10 +1165,10 @@ if st.session_state.view == "M1, M2, H1 & M3":
     if not large_df.empty:
         if filter_mode == "Excess":
             large_total = sum(sum_positive(large_df[f"{b['code']}_fin"]) for b in QUALITY_BLOCKS)
-            exp_label = f"▶ Sieves Below 6.5 (7 to 12.5) · {len(large_df)} sizes · Pos Final: +{large_total:.2f} ct"
+            exp_label = f"Sieves Below 6.5 (7 to 12.5) · {len(large_df)} sizes · Excess: +{large_total:.2f} ct"
         else:
             large_total = sum(sum_negative(large_df[f"{b['code']}_fin"]) for b in QUALITY_BLOCKS)
-            exp_label = f"▶ Sieves Below 6.5 (7 to 12.5) · {len(large_df)} sizes · Neg Final: {large_total:.2f} ct"
+            exp_label = f"Sieves Below 6.5 (7 to 12.5) · {len(large_df)} sizes · Shortage: {large_total:.2f} ct"
 
         with st.expander(exp_label, expanded=False):
             st.markdown(
@@ -954,20 +1178,20 @@ if st.session_state.view == "M1, M2, H1 & M3":
 
         gt_parts = []
         if filter_mode == "Excess":
-            gt_title = "GRAND TOTAL (POSITIVE / EXCESS SUM)"
+            gt_title = "GRAND TOTAL · EXCESS (POSITIVE SUM)"
             for blk in QUALITY_BLOCKS:
                 q = blk["code"]
                 g_pos = sum_positive(df[f"{q}_fin"])
-                gt_parts.append(f'<b>{q}</b>: Pos Final <span class="val-surplus">+{g_pos:.2f}</span>')
+                gt_parts.append(f'<b>{q}</b>: <span class="val-surplus">+{g_pos:.2f}</span>')
         else:
-            gt_title = "GRAND TOTAL (NEGATIVE SUM)"
+            gt_title = "GRAND TOTAL · SHORTAGE (NEGATIVE SUM)"
             for blk in QUALITY_BLOCKS:
                 q = blk["code"]
                 g_neg = sum_negative(df[f"{q}_fin"])
-                gt_parts.append(f'<b>{q}</b>: Neg Final <span class="val-short">{g_neg:.2f}</span>')
+                gt_parts.append(f'<b>{q}</b>: <span class="val-short">{g_neg:.2f}</span>')
 
         st.markdown(
-            f'<div class="q-card-sub" style="border:1.5px solid;border-radius:6px;margin-top:4px;padding:5px 8px;">'
+            f'<div class="gt-bar">'
             f'<span><b>{gt_title}</b></span><span>{" &nbsp;|&nbsp; ".join(gt_parts)}</span></div>',
             unsafe_allow_html=True,
         )
@@ -1062,13 +1286,13 @@ elif st.session_state.view == "Buying":
     st.markdown(build_buying_html(b_prim, "SUBTOTAL (6–6.5)", show_grand_total=b_large.empty), unsafe_allow_html=True)
 
     if not b_large.empty:
-        with st.expander(f"▶ Sieves Below 6.5 (7 to 12.5) · {len(b_large)} sizes", expanded=False):
+        with st.expander(f"Sieves Below 6.5 (7 to 12.5) · {len(b_large)} sizes", expanded=False):
             st.markdown(build_buying_html(b_large, "SUBTOTAL (7–12.5)", show_grand_total=False), unsafe_allow_html=True)
 
         gt_cells = ["<td>GRAND TOTAL</td>"]
         for qc in ["M1", "M2", "H1", "M3"]:
             gt_cells.append(f"<td>{float(df_buy[qc].fillna(0.0).sum()):.2f}</td>")
         st.markdown(
-            f'<div class="buy-wrap" style="margin-top:4px;"><table class="buy-tbl"><tfoot><tr>{"".join(gt_cells)}</tr></tfoot></table></div>',
+            f'<div class="buy-wrap" style="margin-top:6px;"><table class="buy-tbl"><tfoot><tr>{"".join(gt_cells)}</tr></tfoot></table></div>',
             unsafe_allow_html=True,
         )
